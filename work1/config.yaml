@@ -1,0 +1,39 @@
+#Configuration
+VERBOSE: False
+MODEL:
+  MODE: 'DeFlare'
+# Optimization arguments.
+TRAINOPTIM:
+  BATCH: 1 # origin: 2
+  EPOCHS: 300
+  CHANNELS: 8
+  DEVICES: 1
+  # NEPOCH_DECAY: [10]
+  LR_INITIAL: 1e-4 #origin: 2e-4
+  LR_MIN: 1e-6 # origin: 1e-6
+  # BETA1: 0.9
+TRAINING:
+  VAL_AFTER_EVERY: 1
+  RESUME: False
+  TRAIN_PS: 256 # origin: 256
+  VAL_PS: 512
+  TRAIN_DIR: './dataset/flare7k_local'       # path to training data
+  LOSS_WEIGHTS: [
+    1.0,  # Char loss
+    1.0, # SSIM loss
+    1.5, # Freq loss
+    0.02, # VGG loss
+  ]
+  VAL:
+    REAL_DIR: './dataset/Flare7Kpp/test_data/real'
+    REAL_SAVE: './val_result_real'
+    SYN_DIR: './dataset/Flare7Kpp/test_data/synthetic'
+    SYN_SAVE: './val_result_syn'
+  SAVE_DIR: './checkpoints'           # path to save models and images
+  SAVE_AFTER_EVERY: 5
+TESTING:
+  TEST_PS: None
+  TEST_DIR_REAL: './dataset/Flare7Kpp/test_data/real' # path to validation data
+  TEST_DIR_SYN: './dataset/Flare7Kpp/test_data/synthetic' # path to validation data
+  WEIGHT_ROOT: './checkpoints/models'
+  WEIGHT_NAME: '/model_bestLPIPS.pth'
