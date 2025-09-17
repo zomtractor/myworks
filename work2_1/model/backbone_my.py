@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
 
 from model import BasicConv
 
@@ -92,25 +91,25 @@ class UpSample(nn.Module):
 
 
 
-class MyBlock(nn.Module):
+class MyNet(nn.Module):
     def __init__(self, base_channels=16,num_block=3, num_bottleneck=2):
-        super(MyBlock, self).__init__()
+        super(MyNet, self).__init__()
         self.num_block = num_block
         self.num_bottleneck = num_bottleneck
 
         self.proj = [BasicConv(3, base_channels, kernel_size=3, padding=1)]
         for i in range(num_block - 1):
             self.proj.append(ConvS(base_channels * 2**i))
-        self.proj_laplacian = [BasicConv(3, base_channels * 2**i, kernel_size=3, padding=1) for i in range(num_block)]
+        self.proj_laplacian = [BasicConv(3, base_channels * 2**(num_block-i+1), kernel_size=3, padding=1) for i in range(num_block)]
         self.ebs = [EBlock(base_channels * 2**i) for i in range(num_block)]
         self.bottleneck = [EBlock(base_channels * 2**(num_block-1)) for _ in range(num_bottleneck)]
         self.dbs_pred = [DBlockPred(base_channels * 2**(num_block-1-i)) for i in range(num_block)]
         self.dbs_flare = [DBlockFlare(base_channels * 2**(num_block-1-i)) for i in range(num_block)]
-        self.ups_pred = [UpSample(base_channels * 2**i, base_channels * 2**i) for i in range(num_block)]
-        self.ups_flare = [UpSample(base_channels * 2**i, base_channels * 2**i) for i in range(num_block)]
+        self.ups_pred = [UpSample(base_channels * 2**(num_block-i-1), base_channels * 2**(num_block-i-1)) for i in range(num_block)]
+        self.ups_flare = [UpSample(base_channels * 2**(num_block-i-1), base_channels * 2**(num_block-i-1)) for i in range(num_block)]
         self.downs = [DownSample(base_channels * 2**i, base_channels * 2**i) for i in range(num_block)]
-        self.projout_pred = [BasicConv(base_channels, 3, kernel_size=3, padding=1,norm=True) for _ in range(num_block)]
-        self.projout_flare = [BasicConv(base_channels, 3, kernel_size=3, padding=1,norm=True) for _ in range(num_block)]
+        self.projout_pred = [BasicConv(base_channels*2**(num_block-i), 3, kernel_size=3, padding=1,norm=True) for i in range(num_block)]
+        self.projout_flare = [BasicConv(base_channels*2**(num_block-i), 3, kernel_size=3, padding=1,norm=True) for i in range(num_block)]
 
     def forward(self, x):
         skip=[]
@@ -118,82 +117,34 @@ class MyBlock(nn.Module):
         res = self.ebs[0](self.proj[0](gauss[0]))
         skip.append(res)
         for i in range(1, self.num_block):
-            res = torch.cat((res,self.proj[i](gauss[i])),dim=1)
             res = self.downs[i-1](res)
-            res = self.ebs[i](self.proj[i](res))
+            res = torch.cat((res,self.proj[i](gauss[i])),dim=1)
+            res = self.ebs[i](res)
             skip.append(res)
         res = self.downs[-1](res)
         for i in range(self.num_bottleneck):
             res = self.bottleneck[i](res)
-        res_pred,res_flare = torch.chunk(res,2,dim=1)
+        res_pred = res
+        res_flare = res
         outs_pred = []
         outs_flare = []
+        for i in range(self.num_block):
+            res_pred = self.ups_pred[i](res_pred)
+            res_pred = torch.cat((skip[-1-i],res_pred),dim=1)
+            res_pred = self.dbs_pred[i](res_pred)
 
+            res_flare = self.ups_flare[i](res_flare)
+            res_flare += self.proj_laplacian[-1-i](laplacian[-1-i])
+            res_flare = torch.cat((skip[-1-i],res_flare),dim=1)
+            res_flare = self.dbs_flare[i](res_flare)
 
+            outs_flare.append(self.projout_flare[i](res_flare))
 
-def tensor_to_pil(tensor):
-    tensor = tensor.cpu().detach()
-    if tensor.dim() == 3:
-        tensor = tensor.permute(1, 2, 0)
-    tensor = torch.clamp(tensor, 0, 1)
-    array = (tensor.numpy() * 255).astype(np.uint8)
-    return Image.fromarray(array)
-
+            res_pred = res_pred-res_flare
+            outs_pred.append(self.projout_pred[i](res_pred))
 
 if __name__ == '__main__':
-    from PIL import Image
-    import torch
-    import torch.nn.functional as F
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from torchvision import transforms
-
-    # 设置图像路径
-    image_path1 = "E:/dataset/flare7kpp_r_local/input/c0/48.png"
-    image_path2 = "E:/dataset/flare7kpp_r_local/input/c0/49.png"
-
-    # 1. 读取图像
-    original_image = Image.open(image_path1).convert('RGB')
-    original_image2 = Image.open(image_path2).convert('RGB')
-
-    # 2. 将图像转换为PyTorch张量
-    transform = transforms.Compose([
-        transforms.Resize((384, 384)),
-        transforms.ToTensor(),
-    ])
-    img_tensor = torch.stack((transform(original_image), transform(original_image2)))
-    g, l = GTB(img_tensor, layer=4)
-    g.pop()
-
-    fig, axes = plt.subplots(4, len(g), figsize=(16, 12))
-
-    # 显示高斯金字塔
-    for i, img_tensor in enumerate(g):
-        img = tensor_to_pil(img_tensor[0])
-        axes[0, i].imshow(img)
-        axes[0, i].set_title(f'Gaussian Level {i}')
-        axes[0, i].axis('off')
-        img = tensor_to_pil(img_tensor[1])
-        axes[2, i].imshow(img)
-        axes[2, i].set_title(f'Gaussian Level {i}')
-        axes[2, i].axis('off')
-
-    # 显示拉普拉斯金字塔（需要归一化以便可视化）
-    for i, img_tensor in enumerate(l):
-        img = img_tensor[0]
-        # 对拉普拉斯图像进行归一化以便可视化
-        laplacian_norm = (img - img.min()) / (img.max() - img.min() + 1e-8)
-        img = tensor_to_pil(laplacian_norm)
-        axes[1, i].imshow(img)
-        axes[1, i].set_title(f'Laplacian Level {i}')
-        axes[1, i].axis('off')
-
-        img = img_tensor[1]
-        # 对拉普拉斯图像进行归一化以便可视化
-        laplacian_norm = (img - img.min()) / (img.max() - img.min() + 1e-8)
-        img = tensor_to_pil(laplacian_norm)
-        axes[3, i].imshow(img)
-        axes[3, i].set_title(f'Laplacian Level {i}')
-        axes[3, i].axis('off')
-    plt.tight_layout()
-    plt.show()
+    model = MyNet(base_channels=16)
+    x = torch.randn(2, 3, 256, 256)  # Batch size of 1, 3 channels, 512x512 image
+    output = model(x)
+    print(output.shape)  # Should be (1, 3, 512, 512)

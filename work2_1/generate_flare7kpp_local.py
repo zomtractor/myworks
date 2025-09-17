@@ -22,17 +22,21 @@ import matplotlib.pyplot as plt
 def save_image_batch(args):
     """保存一批图像的辅助函数，用于多线程处理"""
     c, indices = args
-    for i in indices:
-        dic = loader[i]  # 按需加载数据
-        gt, input = dic['gt'], dic['lq']
+    try:
+        for i in indices:
+            # dic = loader[i]  # 按需加载数据
+            dic = loader.getI(i,True,False)
+            gt, input = dic['gt'], dic['lq']
 
-        plt.imsave(f'./dataset/flare7kpp_r_local/input/c{c}/{i}.png',
-                   input.numpy().transpose(1, 2, 0))
-        plt.imsave(f'./dataset/flare7kpp_r_local/gt/c{c}/{i}.png',
-                   gt.numpy().transpose(1, 2, 0))
+            plt.imsave(f'./dataset/flare7kpp_r_local/input/c{c}/{i}.png',
+                       input.numpy().transpose(1, 2, 0))
+            plt.imsave(f'./dataset/flare7kpp_r_local/gt/c{c}/{i}.png',
+                       gt.numpy().transpose(1, 2, 0))
 
-        if i % 100 == 0:
-            print(f'Processed {i} images for channel {c}.')
+            if i % 100 == 0:
+                print(f'Processed {i} images for channel {c}.')
+    except Exception as e:
+        print(f'Error processing batch {c}: {e}')
 
 
 def batch_indices(total, batch_size):
@@ -45,9 +49,9 @@ if __name__ == '__main__':
     # 初始化loader
     loader = Flare_Image_Loader('./dataset/Flickr24K', transform_base,
                                 transform_flare, length=length)
-    loader.load_scattering_flare('./dataset/Flare7Kpp/Flare7K',
+    loader.load_scattering_flare('r',
                                  './dataset/Flare7Kpp/Flare-R/Compound_Flare')
-    loader.load_light_source('./dataset/Flare7Kpp/Flare7K',
+    loader.load_light_source('r',
                              './dataset/Flare7Kpp/Flare-R/Light_Source')
 
     channels = [0, 1, 2, 3]
