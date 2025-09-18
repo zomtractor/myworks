@@ -27,8 +27,20 @@ class DBlockPred(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        return self.layers(x)
+        # return self.layers(x)
+        return x
 
+
+class BottleNeck(nn.Module):
+    def __init__(self, channels):
+        super(BottleNeck, self).__init__()
+        self.convMlp = nn.Sequential(
+            BasicConv(channels, channels // 2, kernel_size=3, stride=1, relu=True),
+            BasicConv(channels // 2, channels, kernel_size=3, stride=1, relu=False)
+        )
+
+    def forward(self, x):
+        return self.convMlp(x)
 
 class DBlockFlare(nn.Module):
     def __init__(self, channels):
@@ -116,9 +128,9 @@ class MyNet(nn.Module):
         self.proj_laplacian = [BasicConv(3, base_channels * 2 ** (i + 1), kernel_size=3, padding=1) for i in
                                range(num_block)]
         self.ebs = nn.ModuleList([EBlock(base_channels * 2 ** i) for i in range(num_block)])
-        self.bottleneck = nn.ModuleList([EBlock(base_channels * 2 ** (num_block - 1)) for _ in range(num_bottleneck)])
-        self.dbs_pred = nn.ModuleList([DBlockPred(base_channels * 2 ** (num_block - 1 - i)) for i in range(num_block)])
-        self.dbs_flare = nn.ModuleList([DBlockFlare(base_channels * 2 ** (num_block - 1 - i)) for i in range(num_block)])
+        self.bottleneck = nn.ModuleList([BottleNeck(base_channels * 2 ** (num_block - 1)) for _ in range(num_bottleneck)])
+        self.dbs_pred = nn.ModuleList([DBlockPred(base_channels * 2 ** (num_block  - i)) for i in range(num_block)])
+        self.dbs_flare = nn.ModuleList([DBlockFlare(base_channels * 2 ** (num_block  - i)) for i in range(num_block)])
         self.ups_pred = nn.ModuleList([UpSample(base_channels * 2 ** (num_block - 1), base_channels * 2 ** (num_block - 1))])
         self.ups_flare = nn.ModuleList([UpSample(base_channels * 2 ** (num_block - 1), base_channels * 2 ** (num_block - 1))])
         for i in range(1, num_block):
