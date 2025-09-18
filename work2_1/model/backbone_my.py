@@ -27,8 +27,8 @@ class DBlockPred(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        # return self.layers(x)
-        return x
+        return self.layers(x)
+        # return x
 
 
 class BottleNeck(nn.Module):
