@@ -174,7 +174,7 @@ class MyNet(nn.Module):
             outs_flare.append(self.projout_flare[i](res_flare))
 
             res_pred = res_pred - res_flare
-            outs_pred.append(self.projout_pred[i](res_pred))
+            outs_pred.append(self.projout_pred[i](res_pred)+gauss[-2 - i])
 
         return outs_pred, outs_flare
 
