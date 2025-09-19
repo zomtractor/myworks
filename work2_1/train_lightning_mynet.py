@@ -3,6 +3,7 @@ import os
 import random
 import time
 import warnings
+import datetime
 
 import cv2
 import lpips
@@ -22,7 +23,11 @@ from model import CombinedLoss
 from utils import network_parameters
 from utils.mask_utils import calculate_metrics
 from warmup_scheduler import GradualWarmupScheduler
-
+def assertLimited():
+    start_time = datetime.time(7, 00)  # 7:40
+    end_time = datetime.time(8, 15)    # 8:10
+    assert not (start_time <= datetime.datetime.now().time() <= end_time), "当前时间位于禁止时间段 7:40~8:10 内"
+    print("assert passed")
 
 def init_torch_config(config):
     warnings.filterwarnings("ignore")
@@ -342,6 +347,8 @@ if __name__ == '__main__':
     combined_flare_loss3 = CombinedLoss(Train['LOSS']).cuda()
     loss_fn_alex = lpips.LPIPS(net='alex').cuda()
     for epoch in range(start_epoch, OPT['EPOCHS'] + 1):
+        if 'LIMITED' in config and config['LIMITED']:
+            assertLimited()
         epoch_start_time = time.time()
         epoch_loss = 0
         epoch_ssim_loss = 0
