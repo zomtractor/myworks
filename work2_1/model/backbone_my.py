@@ -34,13 +34,9 @@ class DBlockPred(nn.Module):
 class BottleNeck(nn.Module):
     def __init__(self, channels):
         super(BottleNeck, self).__init__()
-        self.convMlp = nn.Sequential(
-            BasicConv(channels, channels // 2, kernel_size=3, stride=1, relu=True),
-            BasicConv(channels // 2, channels, kernel_size=3, stride=1, relu=False)
-        )
 
     def forward(self, x):
-        return self.convMlp(x)
+        return x
 
 class DBlockFlare(nn.Module):
     def __init__(self, channels):
@@ -122,6 +118,13 @@ class MyNet(nn.Module):
         self.num_block = num_block
         self.num_bottleneck = num_bottleneck
 
+        self.in_reduce = nn.ModuleList([BasicConv(3, base_channels, kernel_size=3, padding=1)])
+        for i in range(1,num_block):
+            self.en_reduce.append(BasicConv(base_channels * 2 ** (i+1), base_channels * 2 ** i, kernel_size=3, padding=1))
+        self.out_reduce = nn.ModuleList([BasicConv(base_channels, 3, kernel_size=3, padding=1)])
+        for i in range(1,num_block):
+            self.out_reduce.insert(0,BasicConv(base_channels * 2 ** i, base_channels * 2 ** (i-1), kernel_size=3, padding=1))
+
         self.proj = nn.ModuleList([BasicConv(3, base_channels, kernel_size=3, padding=1)])
         for i in range(num_block - 1):
             self.proj.append(ConvS(base_channels * 2 ** i))
@@ -131,14 +134,14 @@ class MyNet(nn.Module):
         self.bottleneck = nn.ModuleList([BottleNeck(base_channels * 2 ** (num_block - 1)) for _ in range(num_bottleneck)])
         self.dbs_pred = nn.ModuleList([DBlockPred(base_channels * 2 ** (num_block  - i)) for i in range(num_block)])
         self.dbs_flare = nn.ModuleList([DBlockFlare(base_channels * 2 ** (num_block  - i)) for i in range(num_block)])
-        self.ups_pred = nn.ModuleList([UpSample(base_channels * 2 ** (num_block - 1), base_channels * 2 ** (num_block - 1))])
-        self.ups_flare = nn.ModuleList([UpSample(base_channels * 2 ** (num_block - 1), base_channels * 2 ** (num_block - 1))])
+        self.ups_pred = nn.ModuleList([UpSample(base_channels * 2 ** (num_block), base_channels * 2 ** (num_block - 1))])
+        self.ups_flare = nn.ModuleList([UpSample(base_channels * 2 ** (num_block), base_channels * 2 ** (num_block - 1))])
         for i in range(1, num_block):
             self.ups_pred.append(
                 UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - 1 - i)))
             self.ups_flare.append(
                 UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - 1 - i)))
-        self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** i) for i in range(num_block)])
+        self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
         self.projout_pred = nn.ModuleList([BasicConv(base_channels * 2 ** (num_block - i), 3, kernel_size=3, padding=1, norm=True) for
                              i in range(num_block)])
         self.projout_flare = nn.ModuleList([BasicConv(base_channels * 2 ** (num_block - i), 3, kernel_size=3, padding=1, norm=True)
