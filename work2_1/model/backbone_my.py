@@ -117,17 +117,17 @@ class MyNet(nn.Module):
         super(MyNet, self).__init__()
         self.num_block = num_block
         self.num_bottleneck = num_bottleneck
-
-        self.in_reduce = nn.ModuleList([BasicConv(3, base_channels, kernel_size=3, padding=1)])
+        self.proj_in = BasicConv(3, base_channels, kernel_size=3, padding=1)
+        self.proj_out = BasicConv(base_channels, 3, kernel_size=3, padding=1)
+        self.in_reduce = nn.ModuleList()
+        self.out_reduce = nn.ModuleList()
         for i in range(1,num_block):
-            self.en_reduce.append(BasicConv(base_channels * 2 ** (i+1), base_channels * 2 ** i, kernel_size=3, padding=1))
-        self.out_reduce = nn.ModuleList([BasicConv(base_channels, 3, kernel_size=3, padding=1)])
-        for i in range(1,num_block):
+            self.in_reduce.append(BasicConv(base_channels * 2 ** (i+1), base_channels * 2 ** i, kernel_size=3, padding=1))
             self.out_reduce.insert(0,BasicConv(base_channels * 2 ** i, base_channels * 2 ** (i-1), kernel_size=3, padding=1))
 
-        self.proj = nn.ModuleList([BasicConv(3, base_channels, kernel_size=3, padding=1)])
-        for i in range(num_block - 1):
-            self.proj.append(ConvS(base_channels * 2 ** i))
+        self.intro = nn.ModuleList()
+        for i in range(1, num_block):
+            self.intro.append(ConvS(base_channels * 2 ** i))
         self.proj_laplacian = nn.ModuleList([BasicConv(3, base_channels * 2 ** (i + 1), kernel_size=3, padding=1) for i in
                                range(num_block)])
         self.ebs = nn.ModuleList([EBlock(base_channels * 2 ** i) for i in range(num_block)])
@@ -138,9 +138,9 @@ class MyNet(nn.Module):
         self.ups_flare = nn.ModuleList([UpSample(base_channels * 2 ** (num_block), base_channels * 2 ** (num_block - 1))])
         for i in range(1, num_block):
             self.ups_pred.append(
-                UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - 1 - i)))
+                UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - i)))
             self.ups_flare.append(
-                UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - 1 - i)))
+                UpSample(base_channels * 2 ** (num_block - i + 1), base_channels * 2 ** (num_block - i)))
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
         self.projout_pred = nn.ModuleList([BasicConv(base_channels * 2 ** (num_block - i), 3, kernel_size=3, padding=1, norm=True) for
                              i in range(num_block)])
@@ -150,13 +150,16 @@ class MyNet(nn.Module):
     def forward(self, x):
         skip = []
         gauss, laplacian = GTB(x, layer=3)
-        res = self.ebs[0](self.proj[0](gauss[0]))
-        skip.append(res)
+        res = self.ebs(self.proj_in(gauss[0]))
+
         for i in range(1, self.num_block):
-            res = self.downs[i - 1](res)
-            res = torch.cat((res, self.proj[i](gauss[i])), dim=1)
-            res = self.ebs[i](res)
+            res = self.ebs[i - 1](res)
             skip.append(res)
+            res = self.downs[i - 1](res)
+            ain = self.intro[i - 1](gauss[i])
+            res = torch.cat((res, ain), dim=1)
+            res = self.in_reduce[i - 1](res)
+
         res = self.downs[-1](res)
         for i in range(self.num_bottleneck):
             res = self.bottleneck[i](res)
@@ -182,8 +185,8 @@ class MyNet(nn.Module):
         return outs_pred, outs_flare
 
 #
-# if __name__ == '__main__':
-#     model = MyNet(base_channels=16).cuda()
-#     x = torch.randn(2, 3, 384, 384).cuda()  # Batch size of 1, 3 channels, 512x512 image
-#     pred, flare = model(x)
-#     print(pred, flare)  # Should be (1, 3, 512, 512)
+if __name__ == '__main__':
+    model = MyNet(base_channels=16)
+    x = torch.randn(2, 3, 384, 384)  # Batch size of 1, 3 channels, 512x512 image
+    pred, flare = model(x)
+    print(pred, flare)  # Should be (1, 3, 512, 512)
