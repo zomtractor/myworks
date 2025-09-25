@@ -150,7 +150,7 @@ class MyNet(nn.Module):
     def forward(self, x):
         skip = []
         gauss, laplacian = GTB(x, layer=3)
-        res = self.ebs(self.proj_in(gauss[0]))
+        res = self.proj_in(gauss[0])
 
         for i in range(1, self.num_block):
             res = self.ebs[i - 1](res)
@@ -160,14 +160,15 @@ class MyNet(nn.Module):
             res = torch.cat((res, ain), dim=1)
             res = self.in_reduce[i - 1](res)
 
-        res = self.downs[-1](res)
         for i in range(self.num_bottleneck):
             res = self.bottleneck[i](res)
+
+
         res_pred = res
         res_flare = res
         outs_pred = []
         outs_flare = []
-        for i in range(self.num_block):
+        for i in range(1, self.num_block):
             res_pred = self.ups_pred[i](res_pred)
             res_pred = torch.cat((skip[-1 - i], res_pred), dim=1)
             res_pred = self.dbs_pred[i](res_pred)
