@@ -122,7 +122,6 @@ class MyNet(nn.Module):
         self.num_block = num_block
         self.num_bottleneck = num_bottleneck
         self.proj_in = BasicConv(3, base_channels, kernel_size=3, padding=1)
-        self.proj_out = BasicConv(base_channels, 3, kernel_size=3, padding=1)
         self.in_reduce = nn.ModuleList()
         self.out_reduce = nn.ModuleList()
         for i in range(1,num_block):
