@@ -40,6 +40,7 @@ def getResult(type,name):
     test_dir = Test[f'TEST_DIR_{type.upper()}']
     model_restored.cuda()
     utils.mkdir(f"./mask_result_{type}")
+    utils.mkdir(f"./maskless_result_{type}")
 
     ## DataLoaders
     test_dataset = get_validation_data(test_dir, {'patch_size': Test['TEST_PS']})
@@ -77,12 +78,18 @@ def getResult(type,name):
                 mask = mask[:, :, h_pad:-h_odd_pad, :]
             if w_pad != 0:
                 mask = mask[:, :, :, w_pad:-w_odd_pad]
+        maskless = input_ - mask
         mask = torch.clamp(mask, 0, 1)
+        maskless = torch.clamp(maskless, 0, 1)
         mask = mask.permute(0, 2, 3, 1).cpu().detach().numpy()
+        maskless = maskless.permute(0, 2, 3, 1).cpu().detach().numpy()
         for batch in range(len(mask)):
             mask_img = img_as_ubyte(mask[batch])
+            maskless_img = img_as_ubyte(maskless[batch])
             cv2.imwrite(os.path.join(f"./mask_result_{type}", data_test[2][batch] + '.png'),
                         cv2.cvtColor(mask_img, cv2.COLOR_RGB2BGR))
+            cv2.imwrite(os.path.join(f"./maskless_result_{type}", data_test[2][batch] + '.png'),
+                        cv2.cvtColor(maskless_img, cv2.COLOR_RGB2BGR))
 
 
 if __name__ == "__main__":
@@ -92,4 +99,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Testing {args.type} {args.index} model for datasets...")
     getResult("real",args.index)
-    getResult("syn",args.index)
+    # getResult("syn",args.index)
