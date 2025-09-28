@@ -48,7 +48,10 @@ def getResult(type,name):
                              drop_last=True)
     # Weight_path
 
-    model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
+    if name == 'latest':
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_latest.pth"
+    else:
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
     ## Evaluation (Validation)
     utils.load_checkpoint(model_restored, model_path)
     model_restored.eval()
@@ -94,9 +97,9 @@ def getResult(type,name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--index', type=str, default='PSNR',choices=['PSNR', 'SSIM', 'LPIPS', 'Gpsnr','Spsnr'], help='which index to calculate')
-    parser.add_argument('--type', type=str, default='real', choices=['real', 'syn'], help='which type of data to test')
+    parser.add_argument('--index', type=str, default='PSNR',choices=['PSNR', 'SSIM', 'LPIPS', 'Gpsnr','Spsnr',"latest"], help='which index to calculate')
     args = parser.parse_args()
-    print(f"Testing {args.type} {args.index} model for datasets...")
+    print(f"Visualizing real {args.index} model for datasets...")
     getResult("real",args.index)
-    # getResult("syn",args.index)
+    print(f"Visualizing syn {args.index} model for datasets...")
+    getResult("syn",args.index)
