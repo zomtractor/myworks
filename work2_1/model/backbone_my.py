@@ -85,8 +85,8 @@ def GTB(x, layer=4):
     current = x
     res_gaussian.append(current)
     for i in range(layer):
-        current = F.pad(current, (2, 2, 2, 2), mode='reflect')
-        blurred = F.conv2d(current, kernel, groups=c)
+        pad = F.pad(current, (2, 2, 2, 2), mode='reflect')
+        blurred = F.conv2d(pad, kernel, groups=c)
         blurred = blurred[:, :, ::2, ::2]
         res_gaussian.append(blurred)
         upsampled = F.interpolate(blurred, size=current.shape[2:], mode='bilinear', align_corners=False)
