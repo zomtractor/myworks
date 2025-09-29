@@ -42,6 +42,7 @@ class BottleNeck(nn.Module):
     def forward(self, x):
         return self.convMlp(x) + x
 
+
 class DBlockFlare(nn.Module):
     def __init__(self, channels):
         super(DBlockFlare, self).__init__()
@@ -70,7 +71,7 @@ class ConvS(nn.Module):
         return x
 
 
-# gaussian transform block
+# gaussian transform block, return gaussian pyramid[layer] and laplacian pyramid[layer-1]
 def GTB(x, layer=4):
     res_gaussian = []
     res_laplacian = []
@@ -84,7 +85,8 @@ def GTB(x, layer=4):
     current = x
     res_gaussian.append(current)
     for i in range(layer):
-        blurred = F.conv2d(current, kernel, padding=2, groups=c)
+        current = F.pad(current, (2, 2, 2, 2), mode='reflect')
+        blurred = F.conv2d(current, kernel, groups=c)
         blurred = blurred[:, :, ::2, ::2]
         res_gaussian.append(blurred)
         upsampled = F.interpolate(blurred, size=current.shape[2:], mode='bilinear', align_corners=False)
@@ -95,25 +97,29 @@ def GTB(x, layer=4):
 
 
 class DownSample(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, downscale_factor=2):
         super(DownSample, self).__init__()
-        self.down = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.down = nn.PixelUnshuffle(downscale_factor)
+        self.conv = nn.Conv2d(in_channels * (downscale_factor ** 2), out_channels, kernel_size=3, stride=1, padding=1,
+                              groups=in_channels)
 
     def forward(self, x):
         x = self.down(x)
-        return self.conv(x)
+        x = self.conv(x)
+        return x
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, upscale_factor=2):
         super(UpSample, self).__init__()
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.conv = nn.Conv2d(in_channels, out_channels * (upscale_factor ** 2), kernel_size=3, stride=1, padding=1,
+                              groups=out_channels)
+        self.up = nn.PixelShuffle(upscale_factor)
 
     def forward(self, x):
+        x = self.conv(x)
         x = self.up(x)
-        return self.conv(x)
+        return x
 
 
 class MyNet(nn.Module):
