@@ -47,7 +47,10 @@ def getResult(type,name):
                              drop_last=True)
     # Weight_path
 
-    model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
+    if name == 'latest':
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_latest.pth"
+    else:
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
     ## Evaluation (Validation)
     utils.load_checkpoint(model_restored, model_path)
     model_restored.eval()

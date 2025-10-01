@@ -46,8 +46,10 @@ def getResult(type,name):
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, num_workers=2,
                              drop_last=True)
     # Weight_path
-
-    model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
+    if name == 'latest':
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_latest.pth"
+    else:
+        model_path = f"./checkpoints/{opt['MODEL']['MODE']}/models/model_best{name}_{type.upper()}.pth"
     ## Evaluation (Validation)
     utils.load_checkpoint(model_restored, model_path)
     model_restored.eval()
@@ -80,7 +82,7 @@ def getResult(type,name):
         restored = restored.permute(0, 2, 3, 1).cpu().detach().numpy()
         for batch in range(len(restored)):
             restored_img = img_as_ubyte(restored[batch])
-            cv2.imwrite(os.path.join('./test_result_syn', data_test[2][batch] + '.png'),
+            cv2.imwrite(os.path.join(f'./test_result_{type}', data_test[2][batch] + '.png'),
                         cv2.cvtColor(restored_img, cv2.COLOR_RGB2BGR))
 
 
@@ -133,10 +135,10 @@ def calculate_metrics(type):
     loss_fn_alex = lpips.LPIPS(net='alex').cuda()
     gt_folder = os.path.join(opt['TESTING'][f'TEST_DIR_{type.upper()}'], 'gt')
     input_folder = f'test_result_{type}'
-    gt_list = sorted(glob(gt_folder))
-    input_list = sorted(glob(input_folder))
-    mask_folder = os.path.join(opt['TESTING'][f'TEST_DIR_${type.upper()}'], 'mask')
-    mask_list = sorted(glob(mask_folder))
+    gt_list = sorted(glob(gt_folder+"/*.png"))
+    input_list = sorted(glob(input_folder+"/*.png"))
+    mask_folder = os.path.join(opt['TESTING'][f'TEST_DIR_{type.upper()}'], 'mask')
+    mask_list = sorted(glob(mask_folder+"/*.png"))
 
     assert len(gt_list) == len(input_list)
     n = len(gt_list)
@@ -147,7 +149,7 @@ def calculate_metrics(type):
     for i in range(n):
         img_gt = io.imread(gt_list[i])
         img_input = io.imread(input_list[i])
-        ssim += compare_ssim(img_gt, img_input, multichannel=True)
+        ssim += compare_ssim(img_gt, img_input, channel_axis=2)
         psnr += compare_psnr(img_gt, img_input, data_range=255)
         lpips_val += compare_lpips(img_gt, img_input, loss_fn_alex)
         img_seg = io.imread(mask_list[i])
@@ -174,7 +176,7 @@ if __name__ == "__main__":
     parser.add_argument('--type', type=str, default='real', choices=['real', 'syn'], help='which type of data to test')
     args = parser.parse_args()
     print(f"Testing {args.type} {args.index} model for datasets...")
-    getResult("real",args.index)
-    getResult("syn",args.index)
+    # getResult("real",args.index)
+    # getResult("syn",args.index)
     calculate_metrics("real")
     calculate_metrics("syn")
