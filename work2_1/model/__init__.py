@@ -10,6 +10,7 @@ from .mdfusion import *
 # from .mffe import *
 from .mffe_1 import *
 from .backbone_my import *
+from .backbone_my2 import *
 
 # from .layers import *
 # from .backbone_convir import *
