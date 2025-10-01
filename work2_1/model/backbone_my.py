@@ -137,7 +137,7 @@ class MyNet(nn.Module):
         self.intro = nn.ModuleList()
         for i in range(1, num_block):
             self.intro.append(ConvS(base_channels * 2 ** i))
-        self.proj_laplacian = nn.ModuleList([BasicConv(3, base_channels * 2 ** (i), kernel_size=3, padding=1) for i in
+        self.proj_laplacian = nn.ModuleList([BasicConv(3, base_channels * 2 ** (i), kernel_size=3, padding=1, norm=False, relu=False) for i in
                                range(num_block)])
         self.ebs = nn.ModuleList([EBlock(base_channels * 2 ** i) for i in range(num_block)])
         self.bottleneck = nn.ModuleList([BottleNeck(base_channels * 2 ** (num_block)) for _ in range(num_bottleneck)])
@@ -146,9 +146,9 @@ class MyNet(nn.Module):
 
         self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
-        self.projout_pred = nn.ModuleList([BasicConv(base_channels * 2 ** (i), 3, kernel_size=3, padding=1, norm=True) for
+        self.projout_pred = nn.ModuleList([BasicConv(base_channels * 2 ** (i), 3, kernel_size=3, padding=1, norm=False, relu=False) for
                              i in range(num_block)])
-        self.projout_flare = nn.ModuleList([BasicConv(base_channels * 2 ** (i), 3, kernel_size=3, padding=1, norm=True)
+        self.projout_flare = nn.ModuleList([BasicConv(base_channels * 2 ** (i), 3, kernel_size=3, padding=1, norm=False, relu=False)
                               for i in range(num_block)])
 
     def scale(self,x, factor):
