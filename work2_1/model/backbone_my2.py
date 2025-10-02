@@ -145,7 +145,7 @@ class MyNet2(nn.Module):
 
         self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
-        self.projout = BasicConv(base_channels, 6, kernel_size=3, padding=1)
+        self.projout = BasicConv(base_channels, 6, kernel_size=3, padding=1, norm=False, relu=False)
     def scale(self,x, factor):
         _, _, h, w = x.size()
         new_h = int(h * factor)
