@@ -79,9 +79,11 @@ def getResult(type,name):
                 mask = mask[:, :, h_pad:-h_odd_pad, :]
             if w_pad != 0:
                 restored = restored[:, :, :, w_pad:-w_odd_pad]
-                mask = restored[:, :, :, w_pad:-w_odd_pad]
-        restored = torch.clamp(mask, 0, 1)
-        mask = mask .permute(0, 2, 3, 1).cpu().detach().numpy()
+                mask = mask[:, :, :, w_pad:-w_odd_pad]
+        restored = torch.clamp(restored, 0, 1)
+        restored = restored.permute(0, 2, 3, 1).cpu().detach().numpy()
+        mask = torch.clamp(mask, 0, 1)
+        mask = mask.permute(0, 2, 3, 1).cpu().detach().numpy()
         for batch in range(len(restored)):
             restored_img = img_as_ubyte(restored[batch])
             cv2.imwrite(os.path.join(f'./test_result_{type}', data_test[2][batch] + '.png'),
@@ -181,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument('--type', type=str, default='real', choices=['real', 'syn'], help='which type of data to test')
     args = parser.parse_args()
     print(f"Testing {args.type} {args.index} model for datasets...")
-    getResult("real",args.index)
-    getResult("syn",args.index)
+    # getResult("real",args.index)
+    # getResult("syn",args.index)
     calculate_metrics("real")
     calculate_metrics("syn")
