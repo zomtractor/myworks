@@ -84,10 +84,10 @@ def getResult(type,name):
         mask = mask .permute(0, 2, 3, 1).cpu().detach().numpy()
         for batch in range(len(restored)):
             restored_img = img_as_ubyte(restored[batch])
-            cv2.imwrite(os.path.join('./test_result_syn', data_test[2][batch] + '.png'),
+            cv2.imwrite(os.path.join(f'./test_result_{type}', data_test[2][batch] + '.png'),
                         cv2.cvtColor(restored_img, cv2.COLOR_RGB2BGR))
             mask_img = img_as_ubyte(mask[batch])
-            cv2.imwrite(os.path.join('./test_mask_syn', data_test[2][batch] + '.png'),
+            cv2.imwrite(os.path.join(f'./test_mask_{type}', data_test[2][batch] + '.png'),
                         cv2.cvtColor(mask_img, cv2.COLOR_RGB2BGR))
 
 
