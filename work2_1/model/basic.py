@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class BasicConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,padding='same', bias=True,dilation=1,groups=1, norm=True, relu=True, trans=False):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,padding='same', bias=True,dilation=1,groups=1, norm=True, relu=True, trans=False,act=nn.ReLU):
         super().__init__()
         if trans:
             padding = kernel_size // 2 - 1
@@ -12,7 +12,7 @@ class BasicConv(nn.Module):
             self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride,padding=padding, bias=bias,
                                   dilation=dilation,groups=groups)
         self.bn = nn.BatchNorm2d(out_channels) if norm else nn.Identity()
-        self.act = nn.ReLU() if relu else nn.Identity()
+        self.act = act if relu else nn.Identity()
 
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
