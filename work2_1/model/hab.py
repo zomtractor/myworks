@@ -393,7 +393,6 @@ class OCAB(nn.Module):
     # overlapping cross-attention block
 
     def __init__(self, dim,
-                input_resolution,
                 window_size,
                 overlap_ratio,
                 num_heads,
@@ -405,7 +404,6 @@ class OCAB(nn.Module):
 
         super().__init__()
         self.dim = dim
-        self.input_resolution = input_resolution
         self.window_size = window_size
         self.num_heads = num_heads
         head_dim = dim // num_heads
