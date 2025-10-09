@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model import BasicDrConv, BasicConv, SwinBlock
+from model import BasicDrConv, BasicConv
 
 
 class MDFusion(nn.Module):
@@ -28,11 +28,9 @@ class MDFusion(nn.Module):
             BasicDrConv(in_channels,in_channels,direction=3,kernel_length=5)
         )
         self.mixer = nn.Conv2d(in_channels,out_channels,kernel_size=1)
-        self.attn = nn.Sequential(
-            SwinBlock(dim=in_channels, input_resolution=None, num_heads=4, shift_size=0),
-            SwinBlock(dim=in_channels, input_resolution=None, num_heads=4, shift_size=7),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1)
-        )
+
+        #todo
+        self.attn = nn.Identity()
 
 
     def forward(self, x):
