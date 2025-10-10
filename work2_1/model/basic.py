@@ -12,7 +12,7 @@ class BasicConv(nn.Module):
             self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride,padding=padding, bias=bias,
                                   dilation=dilation,groups=groups)
         self.bn = nn.BatchNorm2d(out_channels) if norm else nn.Identity()
-        self.act = act if relu else nn.Identity()
+        self.act = act() if relu else nn.Identity()
 
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
