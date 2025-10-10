@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
-from model import BasicDrConv, BasicConv
+from model import BasicDrConv, BasicConv, WindowAttention, ABTB, LayerNorm
 
 
 class MDFusion(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.proj = nn.Conv2d(in_channels,in_channels,kernel_size=3,padding=1)
+        self.ln1 = LayerNorm(in_channels)
+        self.ln2 = LayerNorm(in_channels)
         self.d0 = nn.Sequential(
             BasicDrConv(in_channels,in_channels//2),
             BasicConv(in_channels//2,in_channels),
@@ -30,15 +31,22 @@ class MDFusion(nn.Module):
         self.mixer = nn.Conv2d(in_channels,out_channels,kernel_size=1)
 
         #todo
-        self.attn = nn.Identity()
+        self.attn = ABTB(out_channels)
+        self.ff = nn.Sequential(
+            BasicConv(out_channels, out_channels // 4, 3, 1, norm=True, relu=True),
+            BasicConv(out_channels // 4, out_channels, 3, 1, norm=True, relu=False)
+        )
 
 
     def forward(self, x):
-        inp = self.proj(x)
+        inp = self.ln1(x)
         res = self.d0(inp)+self.d1(inp)+self.d2(inp)+self.d3(inp)
         res = self.mixer(res)
-        out = inp*res
-        return x+self.attn(out)
+        res = self.attn(res)
+        res = x+res
+        out = self.ln2(res)
+        out = self.ff(out)
+        return res+out
 
 
 if __name__ == '__main__':

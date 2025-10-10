@@ -2,24 +2,56 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model import BasicConv, FAB, OCAB, MFFE
+from model import BasicConv, FAB, OCAB, MFFE, MDFusion
 from .layers import *
 
 class FeatureBlock(nn.Module):
-    def __init__(self, channels):
+    def calculate_rpi_oca(self):
+        # calculate relative position index for OCA
+        window_size_ori = self.window_size
+        window_size_ext = self.window_size + int(self.overlap_ratio * self.window_size)
+
+        coords_h = torch.arange(window_size_ori)
+        coords_w = torch.arange(window_size_ori)
+        coords_ori = torch.stack(torch.meshgrid([coords_h, coords_w]))  # 2, ws, ws
+        coords_ori_flatten = torch.flatten(coords_ori, 1)  # 2, ws*ws
+
+        coords_h = torch.arange(window_size_ext)
+        coords_w = torch.arange(window_size_ext)
+        coords_ext = torch.stack(torch.meshgrid([coords_h, coords_w]))  # 2, wse, wse
+        coords_ext_flatten = torch.flatten(coords_ext, 1)  # 2, wse*wse
+
+        relative_coords = coords_ext_flatten[:, None, :] - coords_ori_flatten[:, :, None]   # 2, ws*ws, wse*wse
+
+        relative_coords = relative_coords.permute(1, 2, 0).contiguous()  # ws*ws, wse*wse, 2
+        relative_coords[:, :, 0] += window_size_ori - window_size_ext + 1  # shift to start from 0
+        relative_coords[:, :, 1] += window_size_ori - window_size_ext + 1
+
+        relative_coords[:, :, 0] *= window_size_ori + window_size_ext - 1
+        relative_position_index = relative_coords.sum(-1)
+        return relative_position_index
+    def __init__(self, channels,windows_size=8, overlap_ratio=0.5):
         super(FeatureBlock, self).__init__()
+        self.window_size = windows_size
+        self.overlap_ratio = overlap_ratio
+        self.rpi = self.calculate_rpi_oca()
+
         self.fab1 = FAB(channels)
         self.fab2 = FAB(channels)
         self.ocab = OCAB(dim=channels,
-                         window_size=8,
-                         overlap_ratio=0.5,
+                         window_size=windows_size,
+                         overlap_ratio=overlap_ratio,
                          num_heads=4)
         self.mffe = MFFE(channels)
 
     def forward(self, x):
+        b,c,h,w = x.shape
         res = self.fab1(x)
         res = self.fab2(res)
-        res = self.cbam(res)
+        # (b,c,h,w)->(b,h*w,c)
+        res = res.flatten(2).transpose(1, 2)
+        res = self.ocab(res,(h,w),self.rpi)
+        res = res.transpose(1, 2).view(b, c, h, w)
         res = self.mffe(res)
         return x + res
 
@@ -27,49 +59,37 @@ class FeatureBlock(nn.Module):
 class EBlock(nn.Module):
     def __init__(self, channels):
         super(EBlock, self).__init__()
-        layers = [ResBlock(channels, channels, "ITS") for _ in range(8 - 1)]
-        layers.append(ResBlock(channels, channels, "ITS", filter=True))
-
-        self.layers = nn.Sequential(*layers)
+        self.eb = FeatureBlock(channels, windows_size=8, overlap_ratio=0.5)
 
     def forward(self, x):
-        return self.layers(x)
+        return self.eb(x)
 
 
 class DBlockPred(nn.Module):
     def __init__(self, channels):
         super(DBlockPred, self).__init__()
-        layers = [ResBlock(channels, channels, "ITS") for _ in range(8 - 1)]
-        layers.append(ResBlock(channels, channels, "ITS", filter=True))
-
-        self.layers = nn.Sequential(*layers)
+        self.db = FeatureBlock(channels, windows_size=8, overlap_ratio=0.5)
 
     def forward(self, x):
-        return self.layers(x)
+        return self.db(x)
         # return x
 
 
 class BottleNeck(nn.Module):
     def __init__(self, channels):
         super(BottleNeck, self).__init__()
-        self.convMlp = nn.Sequential(
-            BasicConv(channels, channels // 2, kernel_size=1, stride=1, relu=True),
-            BasicConv(channels // 2, channels, kernel_size=1, stride=1, relu=False)
-        )
+        self.b = FeatureBlock(channels, windows_size=8, overlap_ratio=0.5)
 
     def forward(self, x):
-        return self.convMlp(x) + x
+        return self.b(x)
 
 class DBlockFlare(nn.Module):
     def __init__(self, channels):
         super(DBlockFlare, self).__init__()
-        layers = [ResBlock(channels, channels, "ITS") for _ in range(8 - 1)]
-        layers.append(ResBlock(channels, channels, "ITS", filter=True))
-
-        self.layers = nn.Sequential(*layers)
+        self.db = MDFusion(channels, channels)
 
     def forward(self, x):
-        return self.layers(x)
+        return self.db(x)
 
 
 class ConvS(nn.Module):

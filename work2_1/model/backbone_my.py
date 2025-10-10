@@ -152,12 +152,7 @@ class MyNet(nn.Module):
                               for i in range(num_block)])
 
     def scale(self,x, factor):
-        _, _, h, w = x.size()
-        new_h = int(h * factor)
-        new_w = int(w * factor)
-        if(new_h == h) and (new_w == w):
-            return x
-        return F.interpolate(x, size=(new_h, new_w), mode='bilinear', align_corners=False)
+        return F.interpolate(x, scale_factor=factor, mode='bilinear', align_corners=False)
 
     def forward(self, x):
         skip = []

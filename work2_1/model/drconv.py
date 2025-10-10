@@ -1,5 +1,7 @@
 import torch.nn as nn
-
+from torch.nn import functional as F
+import torch
+import math
 
 class DrConv(nn.Module):
     def __init__(self, in_channels, out_channels=1, kernel_length=3, direction=0,
@@ -51,10 +53,7 @@ class BasicDrConv(nn.Module):
 
 
 if __name__ == '__main__':
-    from torch import nn
-    from torch.nn import functional as F
-    import torch
-    import math
+
 
     net=nn.Sequential(
         BasicDrConv(in_channels=3, out_channels=8, kernel_length=3, direction=0),

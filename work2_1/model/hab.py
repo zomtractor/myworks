@@ -86,11 +86,12 @@ class ChannelAttention(nn.Module):
 
     def __init__(self, num_feat, squeeze_factor=16):
         super(ChannelAttention, self).__init__()
+        self.squeeze_factor = max(1,num_feat // squeeze_factor)
         self.attention = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(num_feat, num_feat // squeeze_factor, 1, padding=0),
+            nn.Conv2d(num_feat, self.squeeze_factor, 1, padding=0),
             nn.ReLU(inplace=True),
-            nn.Conv2d(num_feat // squeeze_factor, num_feat, 1, padding=0),
+            nn.Conv2d(self.squeeze_factor, num_feat, 1, padding=0),
             nn.Sigmoid())
 
     def forward(self, x):
