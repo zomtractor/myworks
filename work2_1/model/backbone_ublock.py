@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.fft
 
-from model import BasicConv, FAB, OCAB, MFFE, MDFusion
-from .layers import *
+from model import MDFusion, LayerNorm, FAB, MFFE, CBAM, BasicConv, OCAB
+
 
 class FeatureBlock(nn.Module):
     def calculate_rpi_oca(self):
@@ -134,8 +135,10 @@ def GTB(x, layer=4):
 
 
 class DownSample(nn.Module):
-    def __init__(self, in_channels, out_channels, downscale_factor=2):
+    def __init__(self, in_channels, out_channels=None, downscale_factor=2):
         super(DownSample, self).__init__()
+        if out_channels is None:
+            out_channels = in_channels*2
         self.down = nn.PixelUnshuffle(downscale_factor)
         self.conv = nn.Conv2d(in_channels * (downscale_factor ** 2), out_channels, kernel_size=3, stride=1, padding=1,
                               groups=in_channels)
@@ -147,8 +150,10 @@ class DownSample(nn.Module):
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels, out_channels, upscale_factor=2):
+    def __init__(self, in_channels, out_channels=None, upscale_factor=2):
         super(UpSample, self).__init__()
+        if out_channels is None:
+            out_channels = in_channels//2
         self.conv = nn.Conv2d(in_channels, out_channels * (upscale_factor ** 2), kernel_size=3, stride=1, padding=1,
                               groups=out_channels)
         self.up = nn.PixelShuffle(upscale_factor)
@@ -158,73 +163,71 @@ class UpSample(nn.Module):
         x = self.up(x)
         return x
 
+class UBlock(nn.Module):
+    def __init__(self, in_channels=3, base_channels=32,in_height=512,in_width=512,weight_connect=True):
+        super(UBlock, self).__init__()
+        self.head = nn.Conv2d(in_channels, base_channels, kernel_size=3, padding=1)
 
-class MyNet2(nn.Module):
-    def __init__(self, base_channels=16, num_block=3, num_bottleneck=2):
-        super(MyNet2, self).__init__()
-        self.num_block = num_block
-        self.num_bottleneck = num_bottleneck
-        self.proj_in = BasicConv(3, base_channels, kernel_size=3, padding=1)
-        self.in_reduce = nn.ModuleList()
-        self.out_reduce = nn.ModuleList()
-        for i in range(1,num_block):
-            self.in_reduce.append(BasicConv(base_channels * 2 ** (i+1), base_channels * 2 ** i, kernel_size=3, padding=1))
-            self.out_reduce.append(BasicConv(base_channels * 2 ** i, base_channels * 2 ** (i-1), kernel_size=3, padding=1))
-        self.out_reduce.append(BasicConv(base_channels * 2 ** num_block, (base_channels * 2 ** (num_block-1)), kernel_size=3, padding=1))
-        self.intro = nn.ModuleList()
-        for i in range(1, num_block):
-            self.intro.append(ConvS(base_channels * 2 ** i))
-        self.proj_laplacian = nn.ModuleList([BasicConv(3, base_channels * 2 ** (i), kernel_size=3, padding=1) for i in
-                               range(num_block)])
-        self.ebs = nn.ModuleList([EBlock(base_channels * 2 ** i) for i in range(num_block)])
-        self.bottleneck = nn.ModuleList([BottleNeck(base_channels * 2 ** (num_block)) for _ in range(num_bottleneck)])
-        self.dbs_pred = nn.ModuleList([DBlockPred(base_channels * 2 ** (i)) for i in range(num_block)])
-        self.dbs_flare = nn.ModuleList([DBlockFlare(base_channels * 2 ** (i)) for i in range(num_block)])
+        self.eb1 = FeatureBlock(base_channels)
+        self.down1 = DownSample(base_channels)
+        self.eb2 = FeatureBlock(base_channels * 2)
+        self.down2 = DownSample(base_channels * 2)
+        self.eb3 = FeatureBlock(base_channels * 4)
+        self.down3 = DownSample(base_channels * 4)
+        self.eb4 = FeatureBlock(base_channels * 8)
+        self.down4 = DownSample(base_channels * 8)
+        self.bottleneck = FeatureBlock(base_channels * 16)
+        self.dbp4 = DBlockFlare(base_channels * 16)
+        self.up4 = UpSample(base_channels * 16)
+        self.db4 = FeatureBlock(base_channels * 8)
+        self.dbp3 = DBlockFlare(base_channels * 8)
+        self.up3 = UpSample(base_channels * 8)
+        self.db3 = FeatureBlock(base_channels * 4)
+        self.dbp2 = DBlockFlare(base_channels * 4)
+        self.up2 = UpSample(base_channels * 4)
+        self.db2 = FeatureBlock(base_channels * 2)
+        self.dbp1 = DBlockFlare(base_channels * 2)
+        self.up1 = UpSample(base_channels * 2)
+        self.db1 = FeatureBlock(base_channels)
 
-        self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
-        self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
-        self.projout = BasicConv(base_channels, 6, kernel_size=3, padding=1, norm=False, relu=False)
-    def scale(self,x, factor):
-        _, _, h, w = x.size()
-        new_h = int(h * factor)
-        new_w = int(w * factor)
-        if(new_h == h) and (new_w == w):
-            return x
-        return F.interpolate(x, size=(new_h, new_w), mode='bilinear', align_corners=False)
+        self.tail = nn.Conv2d(base_channels, in_channels*2, kernel_size=3, padding=1)
 
     def forward(self, x):
-        skip = []
-        gauss, laplacian = GTB(x, layer=3)
-        res = self.proj_in(gauss[0])
+        gauss, laplacian = GTB(x, layer=4)
 
-        for i in range(1, self.num_block):
-            res = self.ebs[i - 1](res)
-            skip.append(res)
-            res = self.downs[i - 1](res)
-            ain = self.intro[i - 1](gauss[i])
-            res = torch.cat((res, ain), dim=1)
-            res = self.in_reduce[i - 1](res)
+        out = self.head(x)
+        v1 = self.eb1(out)
+        out = self.down1(v1)
+        v2 = self.eb2(out)
+        out = self.down2(v2)
+        v3 = self.eb3(out)
+        out = self.down3(v3)
+        v4 = self.eb4(out)
+        out = self.down4(v4)
+        out = self.bottleneck(out)
+        out = self.up4(out)
+        out = self.dbp4(out+laplacian[3])
+        out = self.db4(out)
+        out = self.up3(out)
+        out = self.dbp3(out+laplacian[2])
+        out = self.db3(out)
+        out = self.up2(out)
+        out = self.dbp2(out+laplacian[1])
+        out = self.db2(out)
+        out = self.up1(out)
+        out = self.dbp1(out+laplacian[0])
+        out = self.db1(out)
+        out = self.tail(out)
+        pred,flare = torch.chunk(out, 2, dim=1)
+        return x+pred, x+flare
 
-        res = self.ebs[-1](res)
-        skip.append(res)
-        res = self.downs[-1](res)
-        for i in range(self.num_bottleneck):
-            res = self.bottleneck[i](res)
 
-        for i in range(0, self.num_block):
-            res = self.ups[-1-i](res)
-            aout = self.proj_laplacian[-1 - i](laplacian[-1 - i])
-            res = self.dbs_flare[-1 - i](res + aout)
-            res = torch.cat((res, skip[-1 - i]), dim=1)
-            res = self.out_reduce[-1 - i](res)
-            res = self.dbs_pred[-1 - i](res)
-        res = self.projout(res)
-        pred,flare = torch.chunk(res,2,dim=1)
-        return pred+x,flare+x
-
-#
 if __name__ == '__main__':
-    model = MyNet2(base_channels=16)
-    x = torch.randn(2, 3, 384, 384)  # Batch size of 1, 3 channels, 512x512 image
-    pred, flare = model(x)
-    print(pred, flare)  # Should be (1, 3, 512, 512)
+    model = UBlock(in_channels=3, base_channels=32,in_height=256,in_width=256,weight_connect=True)
+    model = model.cuda()
+    x = torch.randn(1, 3, 256, 256)  # Batch size of 1, 3 channels, 512x512 image
+    for i in range(100):
+        x = x.cuda()
+    output = model(x)
+    print(output.shape)  # Should be (1, 3, 512, 512)
+
