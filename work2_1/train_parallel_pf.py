@@ -70,7 +70,7 @@ def load_model(config):
     model_class = getattr(model, config['MODEL']['ARCH'])
     model_args = config['MODEL']['ARGS']
     model_restored = model_class(**model_args).cuda()
-    model_restored = torch.nn.parallel.DistributedDataParallel(model_restored, device_ids=[args.local_rank],find_unused_parameters=True)
+    model_restored = torch.nn.parallel.DistributedDataParallel(model_restored, device_ids=[args.local_rank])
 
     p_number = network_parameters(model_restored)
     ## Optimizer
