@@ -366,7 +366,7 @@ if __name__ == '__main__':
 
             loss1_gt = combined_gt_loss1(restored, target)
             loss1_flare = combined_flare_loss1(flarepred, flare)
-            loss = loss1_gt+loss1_flare
+            loss = loss1_gt+0.1*loss1_flare
             # Back propagation
             # loss.backward()
             fabric.backward(loss)
