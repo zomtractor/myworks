@@ -1,0 +1,908 @@
+nohup: 忽略输入
+Using 16-bit Automatic Mixed Precision (AMP)
+You are using a CUDA device ('NVIDIA A40') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+Net parameters: 57421217
+Model0704_01
+/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/checkpoints/Model0704_01
+==> Loading Datasets
+rgb_dir:  /mnt/zjy/DataSet/data/zbl/deflare/FlareDataSet5/train
+==> Training details:
+------------------------------------------------------------------
+    Restoration mode:   Model0704_01
+    Train patches size: 256x256
+    Val patches size:   256x256
+    Model parameters:   57421217
+    Start/End epochs:   1~401
+    Batch sizes:        12
+    Learning rate:      1e-4
+------------------------------------------------------------------
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: /mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/lpips/weights/v0.1/alex.pth
+train loader length: {} 1995
+/mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/torch/optim/lr_scheduler.py:143: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn("Detected call of `lr_scheduler.step()` before `optimizer.step()`. "
+/mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=VGG19_Weights.IMAGENET1K_V1`. You can also use `weights=VGG19_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=AlexNet_Weights.IMAGENET1K_V1`. You can also use `weights=AlexNet_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[epoch 1 PSNR: 22.6090 --- best_epoch 1 Best_PSNR 22.6090]
+[epoch 1 SSIM: 0.8567 --- best_epoch 1 Best_SSIM 0.8567]
+[epoch 1 LPIPS: 0.0787 --- best_epoch 1 Best_LPIPS 0.0787]
+------------------------------------------------------------------
+Epoch: 1	Time: 2742.0776	Image Loss: 0.3569	Mask Loss: 0.0600	LossTotal: 555.3326	LearningRate 0.00006667
+------------------------------------------------------------------
+train loader length: {} 1995
+/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/train/../utils/utils.py:24: FutureWarning: `multichannel` is a deprecated argument name for `structural_similarity`. It will be removed in version 1.0. Please use `channel_axis` instead.
+  ssim = compare_ssim(img_gt, img_input, multichannel=True)
+[epoch 2 PSNR: 22.9165 --- best_epoch 2 Best_PSNR 22.9165]
+[epoch 2 SSIM: 0.8582 --- best_epoch 2 Best_SSIM 0.8582]
+[epoch 2 LPIPS: 0.0779 --- best_epoch 2 Best_LPIPS 0.0779]
+------------------------------------------------------------------
+Epoch: 2	Time: 2598.7733	Image Loss: 0.2898	Mask Loss: 0.0297	LossTotal: 472.5215	LearningRate 0.00010000
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 3 PSNR: 23.0033 --- best_epoch 3 Best_PSNR 23.0033]
+[epoch 3 SSIM: 0.8587 --- best_epoch 3 Best_SSIM 0.8587]
+[epoch 3 LPIPS: 0.0779 --- best_epoch 2 Best_LPIPS 0.0779]
+------------------------------------------------------------------
+Epoch: 3	Time: 2602.2786	Image Loss: 0.1931	Mask Loss: 0.0202	LossTotal: 445.4416	LearningRate 0.00010000
+------------------------------------------------------------------
+train loader length: {} 1995
+/mnt/zjy/anaconda3/envs/zjy_base/lib/python3.8/site-packages/torch/optim/lr_scheduler.py:855: UserWarning: To get the last learning rate computed by the scheduler, please use `get_last_lr()`.
+  warnings.warn("To get the last learning rate computed by the scheduler, "
+[epoch 4 PSNR: 23.5116 --- best_epoch 4 Best_PSNR 23.5116]
+[epoch 4 SSIM: 0.8625 --- best_epoch 4 Best_SSIM 0.8625]
+[epoch 4 LPIPS: 0.0740 --- best_epoch 4 Best_LPIPS 0.0740]
+------------------------------------------------------------------
+Epoch: 4	Time: 2600.1537	Image Loss: 0.0940	Mask Loss: 0.0159	LossTotal: 410.2758	LearningRate 0.00010000
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 5 PSNR: 24.4178 --- best_epoch 5 Best_PSNR 24.4178]
+[epoch 5 SSIM: 0.8681 --- best_epoch 5 Best_SSIM 0.8681]
+[epoch 5 LPIPS: 0.0704 --- best_epoch 5 Best_LPIPS 0.0704]
+------------------------------------------------------------------
+Epoch: 5	Time: 2599.3425	Image Loss: 0.3561	Mask Loss: 0.0125	LossTotal: 389.0074	LearningRate 0.00009999
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 6 PSNR: 24.8968 --- best_epoch 6 Best_PSNR 24.8968]
+[epoch 6 SSIM: 0.8750 --- best_epoch 6 Best_SSIM 0.8750]
+[epoch 6 LPIPS: 0.0685 --- best_epoch 6 Best_LPIPS 0.0685]
+------------------------------------------------------------------
+Epoch: 6	Time: 2598.2125	Image Loss: 0.0869	Mask Loss: 0.0106	LossTotal: 378.5152	LearningRate 0.00009998
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 7 PSNR: 24.7364 --- best_epoch 6 Best_PSNR 24.8968]
+[epoch 7 SSIM: 0.8715 --- best_epoch 6 Best_SSIM 0.8750]
+[epoch 7 LPIPS: 0.0655 --- best_epoch 7 Best_LPIPS 0.0655]
+------------------------------------------------------------------
+Epoch: 7	Time: 2597.0375	Image Loss: 0.1214	Mask Loss: 0.0088	LossTotal: 370.1407	LearningRate 0.00009997
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 8 PSNR: 25.5053 --- best_epoch 8 Best_PSNR 25.5053]
+[epoch 8 SSIM: 0.8811 --- best_epoch 8 Best_SSIM 0.8811]
+[epoch 8 LPIPS: 0.0629 --- best_epoch 8 Best_LPIPS 0.0629]
+------------------------------------------------------------------
+Epoch: 8	Time: 2598.6364	Image Loss: 0.2097	Mask Loss: 0.0073	LossTotal: 364.8669	LearningRate 0.00009995
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 9 PSNR: 25.5770 --- best_epoch 9 Best_PSNR 25.5770]
+[epoch 9 SSIM: 0.8848 --- best_epoch 9 Best_SSIM 0.8848]
+[epoch 9 LPIPS: 0.0632 --- best_epoch 8 Best_LPIPS 0.0629]
+------------------------------------------------------------------
+Epoch: 9	Time: 2597.0991	Image Loss: 0.2048	Mask Loss: 0.0068	LossTotal: 359.7049	LearningRate 0.00009993
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 10 PSNR: 25.4150 --- best_epoch 9 Best_PSNR 25.5770]
+[epoch 10 SSIM: 0.8859 --- best_epoch 10 Best_SSIM 0.8859]
+[epoch 10 LPIPS: 0.0619 --- best_epoch 10 Best_LPIPS 0.0619]
+------------------------------------------------------------------
+Epoch: 10	Time: 2597.4305	Image Loss: 0.3241	Mask Loss: 0.0062	LossTotal: 350.6354	LearningRate 0.00009991
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 11 PSNR: 25.7059 --- best_epoch 11 Best_PSNR 25.7059]
+[epoch 11 SSIM: 0.8847 --- best_epoch 10 Best_SSIM 0.8859]
+[epoch 11 LPIPS: 0.0605 --- best_epoch 11 Best_LPIPS 0.0605]
+------------------------------------------------------------------
+Epoch: 11	Time: 2598.9046	Image Loss: 0.0723	Mask Loss: 0.0058	LossTotal: 346.7387	LearningRate 0.00009989
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 12 PSNR: 25.7532 --- best_epoch 12 Best_PSNR 25.7532]
+[epoch 12 SSIM: 0.8864 --- best_epoch 12 Best_SSIM 0.8864]
+[epoch 12 LPIPS: 0.0582 --- best_epoch 12 Best_LPIPS 0.0582]
+------------------------------------------------------------------
+Epoch: 12	Time: 2597.9037	Image Loss: 0.1958	Mask Loss: 0.0050	LossTotal: 345.6776	LearningRate 0.00009986
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 13 PSNR: 25.8505 --- best_epoch 13 Best_PSNR 25.8505]
+[epoch 13 SSIM: 0.8893 --- best_epoch 13 Best_SSIM 0.8893]
+[epoch 13 LPIPS: 0.0578 --- best_epoch 13 Best_LPIPS 0.0578]
+------------------------------------------------------------------
+Epoch: 13	Time: 2599.1050	Image Loss: 0.1586	Mask Loss: 0.0047	LossTotal: 345.2871	LearningRate 0.00009983
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 14 PSNR: 26.3692 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 14 SSIM: 0.8881 --- best_epoch 13 Best_SSIM 0.8893]
+[epoch 14 LPIPS: 0.0564 --- best_epoch 14 Best_LPIPS 0.0564]
+------------------------------------------------------------------
+Epoch: 14	Time: 2597.7708	Image Loss: 0.2763	Mask Loss: 0.0043	LossTotal: 334.2326	LearningRate 0.00009980
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 15 PSNR: 26.2688 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 15 SSIM: 0.8885 --- best_epoch 13 Best_SSIM 0.8893]
+[epoch 15 LPIPS: 0.0558 --- best_epoch 15 Best_LPIPS 0.0558]
+------------------------------------------------------------------
+Epoch: 15	Time: 2596.9888	Image Loss: 0.2115	Mask Loss: 0.0042	LossTotal: 339.9410	LearningRate 0.00009976
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 16 PSNR: 26.1371 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 16 SSIM: 0.8932 --- best_epoch 16 Best_SSIM 0.8932]
+[epoch 16 LPIPS: 0.0548 --- best_epoch 16 Best_LPIPS 0.0548]
+------------------------------------------------------------------
+Epoch: 16	Time: 2601.2201	Image Loss: 0.1087	Mask Loss: 0.0040	LossTotal: 329.9475	LearningRate 0.00009973
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 17 PSNR: 25.8576 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 17 SSIM: 0.8933 --- best_epoch 17 Best_SSIM 0.8933]
+[epoch 17 LPIPS: 0.0545 --- best_epoch 17 Best_LPIPS 0.0545]
+------------------------------------------------------------------
+Epoch: 17	Time: 2599.8456	Image Loss: 0.0673	Mask Loss: 0.0037	LossTotal: 332.4900	LearningRate 0.00009969
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 18 PSNR: 26.2208 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 18 SSIM: 0.8934 --- best_epoch 18 Best_SSIM 0.8934]
+[epoch 18 LPIPS: 0.0533 --- best_epoch 18 Best_LPIPS 0.0533]
+------------------------------------------------------------------
+Epoch: 18	Time: 2605.0511	Image Loss: 0.1163	Mask Loss: 0.0036	LossTotal: 329.5831	LearningRate 0.00009964
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 19 PSNR: 25.5108 --- best_epoch 14 Best_PSNR 26.3692]
+[epoch 19 SSIM: 0.8811 --- best_epoch 18 Best_SSIM 0.8934]
+[epoch 19 LPIPS: 0.0615 --- best_epoch 18 Best_LPIPS 0.0533]
+------------------------------------------------------------------
+Epoch: 19	Time: 2596.8455	Image Loss: 0.1266	Mask Loss: 0.0034	LossTotal: 327.0028	LearningRate 0.00009960
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 20 PSNR: 26.4707 --- best_epoch 20 Best_PSNR 26.4707]
+[epoch 20 SSIM: 0.8919 --- best_epoch 18 Best_SSIM 0.8934]
+[epoch 20 LPIPS: 0.0533 --- best_epoch 18 Best_LPIPS 0.0533]
+------------------------------------------------------------------
+Epoch: 20	Time: 2599.0717	Image Loss: 0.2002	Mask Loss: 0.0031	LossTotal: 326.1177	LearningRate 0.00009955
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 21 PSNR: 26.4790 --- best_epoch 21 Best_PSNR 26.4790]
+[epoch 21 SSIM: 0.8944 --- best_epoch 21 Best_SSIM 0.8944]
+[epoch 21 LPIPS: 0.0534 --- best_epoch 18 Best_LPIPS 0.0533]
+------------------------------------------------------------------
+Epoch: 21	Time: 2600.3205	Image Loss: 0.2514	Mask Loss: 0.0028	LossTotal: 313.8983	LearningRate 0.00009950
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 22 PSNR: 26.3180 --- best_epoch 21 Best_PSNR 26.4790]
+[epoch 22 SSIM: 0.8971 --- best_epoch 22 Best_SSIM 0.8971]
+[epoch 22 LPIPS: 0.0506 --- best_epoch 22 Best_LPIPS 0.0506]
+------------------------------------------------------------------
+Epoch: 22	Time: 2596.9153	Image Loss: 0.1917	Mask Loss: 0.0028	LossTotal: 319.7490	LearningRate 0.00009944
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 23 PSNR: 26.5777 --- best_epoch 23 Best_PSNR 26.5777]
+[epoch 23 SSIM: 0.8901 --- best_epoch 22 Best_SSIM 0.8971]
+[epoch 23 LPIPS: 0.0537 --- best_epoch 22 Best_LPIPS 0.0506]
+------------------------------------------------------------------
+Epoch: 23	Time: 2598.0099	Image Loss: 0.1748	Mask Loss: 0.0027	LossTotal: 322.1704	LearningRate 0.00009938
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 24 PSNR: 26.5170 --- best_epoch 23 Best_PSNR 26.5777]
+[epoch 24 SSIM: 0.8914 --- best_epoch 22 Best_SSIM 0.8971]
+[epoch 24 LPIPS: 0.0504 --- best_epoch 24 Best_LPIPS 0.0504]
+------------------------------------------------------------------
+Epoch: 24	Time: 2597.5150	Image Loss: 0.1181	Mask Loss: 0.0026	LossTotal: 312.0735	LearningRate 0.00009932
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 25 PSNR: 26.9824 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 25 SSIM: 0.8975 --- best_epoch 25 Best_SSIM 0.8975]
+[epoch 25 LPIPS: 0.0501 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 25	Time: 2598.6579	Image Loss: 0.3718	Mask Loss: 0.0024	LossTotal: 315.3365	LearningRate 0.00009926
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 26 PSNR: 26.4721 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 26 SSIM: 0.8976 --- best_epoch 26 Best_SSIM 0.8976]
+[epoch 26 LPIPS: 0.0512 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 26	Time: 2600.3580	Image Loss: 0.0425	Mask Loss: 0.0024	LossTotal: 309.0687	LearningRate 0.00009919
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 27 PSNR: 26.5442 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 27 SSIM: 0.8965 --- best_epoch 26 Best_SSIM 0.8976]
+[epoch 27 LPIPS: 0.0516 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 27	Time: 2596.4451	Image Loss: 0.0279	Mask Loss: 0.0023	LossTotal: 309.6887	LearningRate 0.00009913
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 28 PSNR: 26.6303 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 28 SSIM: 0.8899 --- best_epoch 26 Best_SSIM 0.8976]
+[epoch 28 LPIPS: 0.0502 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 28	Time: 2596.1997	Image Loss: 0.1737	Mask Loss: 0.0021	LossTotal: 314.3092	LearningRate 0.00009905
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 29 PSNR: 26.6739 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 29 SSIM: 0.8954 --- best_epoch 26 Best_SSIM 0.8976]
+[epoch 29 LPIPS: 0.0520 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 29	Time: 2595.5426	Image Loss: 0.0474	Mask Loss: 0.0022	LossTotal: 315.3399	LearningRate 0.00009898
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 30 PSNR: 26.8270 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 30 SSIM: 0.8978 --- best_epoch 30 Best_SSIM 0.8978]
+[epoch 30 LPIPS: 0.0510 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 30	Time: 2596.3557	Image Loss: 0.2139	Mask Loss: 0.0020	LossTotal: 309.5676	LearningRate 0.00009890
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 31 PSNR: 26.3197 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 31 SSIM: 0.8945 --- best_epoch 30 Best_SSIM 0.8978]
+[epoch 31 LPIPS: 0.0513 --- best_epoch 25 Best_LPIPS 0.0501]
+------------------------------------------------------------------
+Epoch: 31	Time: 2604.4314	Image Loss: 0.1037	Mask Loss: 0.0019	LossTotal: 305.8649	LearningRate 0.00009882
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 32 PSNR: 26.5765 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 32 SSIM: 0.8948 --- best_epoch 30 Best_SSIM 0.8978]
+[epoch 32 LPIPS: 0.0497 --- best_epoch 32 Best_LPIPS 0.0497]
+------------------------------------------------------------------
+Epoch: 32	Time: 2596.3691	Image Loss: 0.1116	Mask Loss: 0.0019	LossTotal: 304.1770	LearningRate 0.00009874
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 33 PSNR: 26.6170 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 33 SSIM: 0.8962 --- best_epoch 30 Best_SSIM 0.8978]
+[epoch 33 LPIPS: 0.0497 --- best_epoch 33 Best_LPIPS 0.0497]
+------------------------------------------------------------------
+Epoch: 33	Time: 2597.0823	Image Loss: 0.2461	Mask Loss: 0.0019	LossTotal: 300.8277	LearningRate 0.00009866
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 34 PSNR: 26.5119 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 34 SSIM: 0.8998 --- best_epoch 34 Best_SSIM 0.8998]
+[epoch 34 LPIPS: 0.0495 --- best_epoch 34 Best_LPIPS 0.0495]
+------------------------------------------------------------------
+Epoch: 34	Time: 2600.6500	Image Loss: 0.1642	Mask Loss: 0.0018	LossTotal: 299.6795	LearningRate 0.00009857
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 35 PSNR: 26.9521 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 35 SSIM: 0.8973 --- best_epoch 34 Best_SSIM 0.8998]
+[epoch 35 LPIPS: 0.0506 --- best_epoch 34 Best_LPIPS 0.0495]
+------------------------------------------------------------------
+Epoch: 35	Time: 2595.2117	Image Loss: 0.1173	Mask Loss: 0.0018	LossTotal: 306.0203	LearningRate 0.00009848
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 36 PSNR: 26.7706 --- best_epoch 25 Best_PSNR 26.9824]
+[epoch 36 SSIM: 0.8973 --- best_epoch 34 Best_SSIM 0.8998]
+[epoch 36 LPIPS: 0.0487 --- best_epoch 36 Best_LPIPS 0.0487]
+------------------------------------------------------------------
+Epoch: 36	Time: 2596.3763	Image Loss: 0.2920	Mask Loss: 0.0017	LossTotal: 303.5108	LearningRate 0.00009838
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 37 PSNR: 27.0342 --- best_epoch 37 Best_PSNR 27.0342]
+[epoch 37 SSIM: 0.8943 --- best_epoch 34 Best_SSIM 0.8998]
+[epoch 37 LPIPS: 0.0495 --- best_epoch 36 Best_LPIPS 0.0487]
+------------------------------------------------------------------
+Epoch: 37	Time: 2596.9430	Image Loss: 0.0614	Mask Loss: 0.0016	LossTotal: 296.3027	LearningRate 0.00009829
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 38 PSNR: 26.8868 --- best_epoch 37 Best_PSNR 27.0342]
+[epoch 38 SSIM: 0.9015 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 38 LPIPS: 0.0495 --- best_epoch 36 Best_LPIPS 0.0487]
+------------------------------------------------------------------
+Epoch: 38	Time: 2598.5134	Image Loss: 0.1629	Mask Loss: 0.0017	LossTotal: 302.5823	LearningRate 0.00009819
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 39 PSNR: 26.9972 --- best_epoch 37 Best_PSNR 27.0342]
+[epoch 39 SSIM: 0.8970 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 39 LPIPS: 0.0496 --- best_epoch 36 Best_LPIPS 0.0487]
+------------------------------------------------------------------
+Epoch: 39	Time: 2594.8812	Image Loss: 0.0497	Mask Loss: 0.0016	LossTotal: 297.5821	LearningRate 0.00009809
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 40 PSNR: 26.7205 --- best_epoch 37 Best_PSNR 27.0342]
+[epoch 40 SSIM: 0.8991 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 40 LPIPS: 0.0483 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 40	Time: 2596.3239	Image Loss: 0.1967	Mask Loss: 0.0015	LossTotal: 306.5549	LearningRate 0.00009798
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 41 PSNR: 27.0857 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 41 SSIM: 0.9000 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 41 LPIPS: 0.0484 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 41	Time: 2596.7204	Image Loss: 0.2548	Mask Loss: 0.0016	LossTotal: 303.5968	LearningRate 0.00009788
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 42 PSNR: 26.9837 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 42 SSIM: 0.8995 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 42 LPIPS: 0.0486 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 42	Time: 2594.8273	Image Loss: 0.0462	Mask Loss: 0.0015	LossTotal: 299.0289	LearningRate 0.00009777
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 43 PSNR: 26.8855 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 43 SSIM: 0.8978 --- best_epoch 38 Best_SSIM 0.9015]
+[epoch 43 LPIPS: 0.0493 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 43	Time: 2595.7995	Image Loss: 0.0546	Mask Loss: 0.0014	LossTotal: 299.4821	LearningRate 0.00009766
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 44 PSNR: 26.7757 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 44 SSIM: 0.9019 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 44 LPIPS: 0.0493 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 44	Time: 2596.6925	Image Loss: 0.2132	Mask Loss: 0.0014	LossTotal: 295.0075	LearningRate 0.00009754
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 45 PSNR: 26.8301 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 45 SSIM: 0.9004 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 45 LPIPS: 0.0489 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 45	Time: 2602.1705	Image Loss: 0.2932	Mask Loss: 0.0013	LossTotal: 288.6678	LearningRate 0.00009742
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 46 PSNR: 27.0666 --- best_epoch 41 Best_PSNR 27.0857]
+[epoch 46 SSIM: 0.9005 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 46 LPIPS: 0.0484 --- best_epoch 40 Best_LPIPS 0.0483]
+------------------------------------------------------------------
+Epoch: 46	Time: 2595.5902	Image Loss: 0.3287	Mask Loss: 0.0014	LossTotal: 289.5444	LearningRate 0.00009730
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 47 PSNR: 27.2455 --- best_epoch 47 Best_PSNR 27.2455]
+[epoch 47 SSIM: 0.8977 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 47 LPIPS: 0.0462 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 47	Time: 2598.8878	Image Loss: 0.1565	Mask Loss: 0.0014	LossTotal: 291.6069	LearningRate 0.00009718
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 48 PSNR: 27.3353 --- best_epoch 48 Best_PSNR 27.3353]
+[epoch 48 SSIM: 0.9016 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 48 LPIPS: 0.0476 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 48	Time: 2600.8694	Image Loss: 0.2033	Mask Loss: 0.0012	LossTotal: 292.3051	LearningRate 0.00009705
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 49 PSNR: 27.3142 --- best_epoch 48 Best_PSNR 27.3353]
+[epoch 49 SSIM: 0.8991 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 49 LPIPS: 0.0503 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 49	Time: 2595.1489	Image Loss: 0.0825	Mask Loss: 0.0013	LossTotal: 291.3554	LearningRate 0.00009693
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 50 PSNR: 27.2458 --- best_epoch 48 Best_PSNR 27.3353]
+[epoch 50 SSIM: 0.9000 --- best_epoch 44 Best_SSIM 0.9019]
+[epoch 50 LPIPS: 0.0480 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 50	Time: 2595.9294	Image Loss: 0.0938	Mask Loss: 0.0012	LossTotal: 284.3142	LearningRate 0.00009680
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 51 PSNR: 27.4521 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 51 SSIM: 0.9026 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 51 LPIPS: 0.0475 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 51	Time: 2598.0099	Image Loss: 0.2040	Mask Loss: 0.0012	LossTotal: 290.5168	LearningRate 0.00009666
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 52 PSNR: 26.9064 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 52 SSIM: 0.8998 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 52 LPIPS: 0.0500 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 52	Time: 2599.6612	Image Loss: 0.1104	Mask Loss: 0.0012	LossTotal: 292.5898	LearningRate 0.00009653
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 53 PSNR: 26.7664 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 53 SSIM: 0.8976 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 53 LPIPS: 0.0486 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 53	Time: 2595.8866	Image Loss: 0.3053	Mask Loss: 0.0012	LossTotal: 284.2772	LearningRate 0.00009639
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 54 PSNR: 27.0903 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 54 SSIM: 0.8936 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 54 LPIPS: 0.0485 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 54	Time: 2594.4464	Image Loss: 0.1943	Mask Loss: 0.0012	LossTotal: 292.9442	LearningRate 0.00009625
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 55 PSNR: 27.1092 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 55 SSIM: 0.8986 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 55 LPIPS: 0.0473 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 55	Time: 2595.0779	Image Loss: 0.1183	Mask Loss: 0.0011	LossTotal: 287.2393	LearningRate 0.00009610
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 56 PSNR: 27.1503 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 56 SSIM: 0.8999 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 56 LPIPS: 0.0489 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 56	Time: 2595.9888	Image Loss: 0.0758	Mask Loss: 0.0011	LossTotal: 288.5614	LearningRate 0.00009596
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 57 PSNR: 27.0204 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 57 SSIM: 0.9023 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 57 LPIPS: 0.0480 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 57	Time: 2605.2330	Image Loss: 0.2340	Mask Loss: 0.0011	LossTotal: 290.8401	LearningRate 0.00009581
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 58 PSNR: 27.2411 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 58 SSIM: 0.9026 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 58 LPIPS: 0.0479 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 58	Time: 2595.8926	Image Loss: 0.1985	Mask Loss: 0.0011	LossTotal: 287.0782	LearningRate 0.00009566
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 59 PSNR: 27.2101 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 59 SSIM: 0.9018 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 59 LPIPS: 0.0468 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 59	Time: 2594.5780	Image Loss: 0.1579	Mask Loss: 0.0010	LossTotal: 284.0065	LearningRate 0.00009550
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 60 PSNR: 27.1580 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 60 SSIM: 0.8995 --- best_epoch 51 Best_SSIM 0.9026]
+[epoch 60 LPIPS: 0.0480 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 60	Time: 2599.6438	Image Loss: 0.0395	Mask Loss: 0.0011	LossTotal: 285.6729	LearningRate 0.00009535
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 61 PSNR: 26.8926 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 61 SSIM: 0.9035 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 61 LPIPS: 0.0472 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 61	Time: 2596.3128	Image Loss: 0.1489	Mask Loss: 0.0010	LossTotal: 280.6237	LearningRate 0.00009519
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 62 PSNR: 27.1260 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 62 SSIM: 0.9018 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 62 LPIPS: 0.0478 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 62	Time: 2598.2451	Image Loss: 0.1137	Mask Loss: 0.0010	LossTotal: 281.0745	LearningRate 0.00009503
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 63 PSNR: 27.0674 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 63 SSIM: 0.9021 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 63 LPIPS: 0.0472 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 63	Time: 2595.2190	Image Loss: 0.0471	Mask Loss: 0.0010	LossTotal: 279.9856	LearningRate 0.00009486
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 64 PSNR: 27.2521 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 64 SSIM: 0.8979 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 64 LPIPS: 0.0492 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 64	Time: 2594.5011	Image Loss: 0.2547	Mask Loss: 0.0010	LossTotal: 278.7587	LearningRate 0.00009469
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 65 PSNR: 27.2425 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 65 SSIM: 0.9031 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 65 LPIPS: 0.0470 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 65	Time: 2594.7103	Image Loss: 0.0228	Mask Loss: 0.0010	LossTotal: 287.3427	LearningRate 0.00009453
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 66 PSNR: 27.0132 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 66 SSIM: 0.8993 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 66 LPIPS: 0.0482 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 66	Time: 2594.9789	Image Loss: 0.1003	Mask Loss: 0.0010	LossTotal: 280.0822	LearningRate 0.00009435
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 67 PSNR: 27.2033 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 67 SSIM: 0.9019 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 67 LPIPS: 0.0495 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 67	Time: 2596.5044	Image Loss: 0.0500	Mask Loss: 0.0009	LossTotal: 280.7557	LearningRate 0.00009418
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 68 PSNR: 27.0309 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 68 SSIM: 0.9024 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 68 LPIPS: 0.0485 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 68	Time: 2595.2766	Image Loss: 0.0937	Mask Loss: 0.0009	LossTotal: 280.9330	LearningRate 0.00009400
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 69 PSNR: 27.2020 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 69 SSIM: 0.9025 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 69 LPIPS: 0.0466 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 69	Time: 2596.8370	Image Loss: 0.1311	Mask Loss: 0.0009	LossTotal: 281.5282	LearningRate 0.00009382
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 70 PSNR: 27.3268 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 70 SSIM: 0.9010 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 70 LPIPS: 0.0472 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 70	Time: 2594.3149	Image Loss: 0.0722	Mask Loss: 0.0009	LossTotal: 281.9906	LearningRate 0.00009364
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 71 PSNR: 27.0089 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 71 SSIM: 0.8981 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 71 LPIPS: 0.0477 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 71	Time: 2594.2136	Image Loss: 0.1539	Mask Loss: 0.0009	LossTotal: 277.5683	LearningRate 0.00009346
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 72 PSNR: 27.2747 --- best_epoch 51 Best_PSNR 27.4521]
+[epoch 72 SSIM: 0.9034 --- best_epoch 61 Best_SSIM 0.9035]
+[epoch 72 LPIPS: 0.0474 --- best_epoch 47 Best_LPIPS 0.0462]
+------------------------------------------------------------------
+Epoch: 72	Time: 2598.5012	Image Loss: 0.0721	Mask Loss: 0.0009	LossTotal: 288.9330	LearningRate 0.00009327
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 73 PSNR: 27.6823 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 73 SSIM: 0.9066 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 73 LPIPS: 0.0457 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 73	Time: 2598.7692	Image Loss: 0.1399	Mask Loss: 0.0008	LossTotal: 270.5557	LearningRate 0.00009309
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 74 PSNR: 27.4824 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 74 SSIM: 0.9018 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 74 LPIPS: 0.0463 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 74	Time: 2598.2878	Image Loss: 0.1214	Mask Loss: 0.0008	LossTotal: 273.4623	LearningRate 0.00009289
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 75 PSNR: 27.2319 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 75 SSIM: 0.9039 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 75 LPIPS: 0.0465 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 75	Time: 2594.6470	Image Loss: 0.1200	Mask Loss: 0.0008	LossTotal: 283.3199	LearningRate 0.00009270
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 76 PSNR: 27.5417 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 76 SSIM: 0.9019 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 76 LPIPS: 0.0487 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 76	Time: 2595.6352	Image Loss: 0.1156	Mask Loss: 0.0008	LossTotal: 281.0824	LearningRate 0.00009251
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 77 PSNR: 27.5277 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 77 SSIM: 0.9029 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 77 LPIPS: 0.0466 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 77	Time: 2598.5014	Image Loss: 0.1389	Mask Loss: 0.0008	LossTotal: 278.5594	LearningRate 0.00009231
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 78 PSNR: 27.4973 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 78 SSIM: 0.9035 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 78 LPIPS: 0.0468 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 78	Time: 2594.5900	Image Loss: 0.1258	Mask Loss: 0.0008	LossTotal: 280.3632	LearningRate 0.00009211
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 79 PSNR: 27.5239 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 79 SSIM: 0.9046 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 79 LPIPS: 0.0463 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 79	Time: 2595.0105	Image Loss: 0.2100	Mask Loss: 0.0008	LossTotal: 280.0455	LearningRate 0.00009190
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 80 PSNR: 27.2801 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 80 SSIM: 0.9008 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 80 LPIPS: 0.0465 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 80	Time: 2595.2887	Image Loss: 0.1706	Mask Loss: 0.0007	LossTotal: 281.3899	LearningRate 0.00009170
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 81 PSNR: 27.3949 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 81 SSIM: 0.9046 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 81 LPIPS: 0.0471 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 81	Time: 2594.9889	Image Loss: 0.1273	Mask Loss: 0.0008	LossTotal: 273.7247	LearningRate 0.00009149
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 82 PSNR: 27.0674 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 82 SSIM: 0.9007 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 82 LPIPS: 0.0482 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 82	Time: 2595.6337	Image Loss: 0.2123	Mask Loss: 0.0007	LossTotal: 279.2120	LearningRate 0.00009128
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 83 PSNR: 27.0576 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 83 SSIM: 0.9026 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 83 LPIPS: 0.0477 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 83	Time: 2612.6436	Image Loss: 0.1524	Mask Loss: 0.0008	LossTotal: 275.7209	LearningRate 0.00009107
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 84 PSNR: 27.4268 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 84 SSIM: 0.9036 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 84 LPIPS: 0.0470 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 84	Time: 2594.1459	Image Loss: 0.0729	Mask Loss: 0.0008	LossTotal: 278.2275	LearningRate 0.00009086
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 85 PSNR: 27.1217 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 85 SSIM: 0.9027 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 85 LPIPS: 0.0474 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 85	Time: 2595.6755	Image Loss: 0.0329	Mask Loss: 0.0007	LossTotal: 278.8289	LearningRate 0.00009064
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 86 PSNR: 27.0744 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 86 SSIM: 0.9016 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 86 LPIPS: 0.0483 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 86	Time: 2594.6798	Image Loss: 0.1198	Mask Loss: 0.0007	LossTotal: 275.0860	LearningRate 0.00009042
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 87 PSNR: 27.1637 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 87 SSIM: 0.8994 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 87 LPIPS: 0.0505 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 87	Time: 2596.3851	Image Loss: 0.2950	Mask Loss: 0.0007	LossTotal: 276.6193	LearningRate 0.00009020
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 88 PSNR: 27.2540 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 88 SSIM: 0.9029 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 88 LPIPS: 0.0468 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 88	Time: 2594.9078	Image Loss: 0.0756	Mask Loss: 0.0007	LossTotal: 271.0102	LearningRate 0.00008998
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 89 PSNR: 27.2932 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 89 SSIM: 0.9028 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 89 LPIPS: 0.0490 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 89	Time: 2595.6930	Image Loss: 0.1387	Mask Loss: 0.0007	LossTotal: 275.9342	LearningRate 0.00008975
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 90 PSNR: 27.1796 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 90 SSIM: 0.8955 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 90 LPIPS: 0.0487 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 90	Time: 2595.9189	Image Loss: 0.0738	Mask Loss: 0.0007	LossTotal: 271.3095	LearningRate 0.00008953
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 91 PSNR: 27.0160 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 91 SSIM: 0.9027 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 91 LPIPS: 0.0458 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 91	Time: 2598.0591	Image Loss: 0.1696	Mask Loss: 0.0007	LossTotal: 272.5912	LearningRate 0.00008930
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 92 PSNR: 27.3544 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 92 SSIM: 0.9034 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 92 LPIPS: 0.0477 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 92	Time: 2594.9369	Image Loss: 0.0231	Mask Loss: 0.0007	LossTotal: 275.5328	LearningRate 0.00008906
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 93 PSNR: 27.5053 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 93 SSIM: 0.9020 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 93 LPIPS: 0.0475 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 93	Time: 2595.4408	Image Loss: 0.1205	Mask Loss: 0.0006	LossTotal: 277.2591	LearningRate 0.00008883
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 94 PSNR: 27.5306 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 94 SSIM: 0.9034 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 94 LPIPS: 0.0463 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 94	Time: 2604.1535	Image Loss: 0.0395	Mask Loss: 0.0007	LossTotal: 268.9533	LearningRate 0.00008859
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 95 PSNR: 27.3362 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 95 SSIM: 0.9040 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 95 LPIPS: 0.0464 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 95	Time: 2600.7984	Image Loss: 0.1437	Mask Loss: 0.0006	LossTotal: 270.2676	LearningRate 0.00008836
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 96 PSNR: 27.1557 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 96 SSIM: 0.9032 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 96 LPIPS: 0.0478 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 96	Time: 2601.1610	Image Loss: 0.0502	Mask Loss: 0.0006	LossTotal: 276.6396	LearningRate 0.00008812
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 97 PSNR: 27.3445 --- best_epoch 73 Best_PSNR 27.6823]
+[epoch 97 SSIM: 0.9024 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 97 LPIPS: 0.0490 --- best_epoch 73 Best_LPIPS 0.0457]
+------------------------------------------------------------------
+Epoch: 97	Time: 2601.3847	Image Loss: 0.2416	Mask Loss: 0.0006	LossTotal: 271.1089	LearningRate 0.00008787
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 98 PSNR: 27.6911 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 98 SSIM: 0.9054 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 98 LPIPS: 0.0450 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 98	Time: 2607.1992	Image Loss: 0.0631	Mask Loss: 0.0006	LossTotal: 271.3045	LearningRate 0.00008763
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 99 PSNR: 27.2473 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 99 SSIM: 0.9025 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 99 LPIPS: 0.0473 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 99	Time: 2618.4189	Image Loss: 0.1674	Mask Loss: 0.0006	LossTotal: 272.3857	LearningRate 0.00008738
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 100 PSNR: 27.2022 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 100 SSIM: 0.8921 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 100 LPIPS: 0.0481 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 100	Time: 2600.1473	Image Loss: 0.1485	Mask Loss: 0.0006	LossTotal: 269.3143	LearningRate 0.00008714
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 101 PSNR: 27.5226 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 101 SSIM: 0.9012 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 101 LPIPS: 0.0459 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 101	Time: 2605.5101	Image Loss: 0.1232	Mask Loss: 0.0006	LossTotal: 275.8421	LearningRate 0.00008689
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 102 PSNR: 27.2045 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 102 SSIM: 0.9013 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 102 LPIPS: 0.0487 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 102	Time: 2600.0171	Image Loss: 0.1614	Mask Loss: 0.0006	LossTotal: 272.5720	LearningRate 0.00008663
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 103 PSNR: 27.4021 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 103 SSIM: 0.9042 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 103 LPIPS: 0.0472 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 103	Time: 2600.1681	Image Loss: 0.1115	Mask Loss: 0.0006	LossTotal: 269.0795	LearningRate 0.00008638
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 104 PSNR: 27.0607 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 104 SSIM: 0.9042 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 104 LPIPS: 0.0473 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 104	Time: 2604.1366	Image Loss: 0.0888	Mask Loss: 0.0006	LossTotal: 268.5010	LearningRate 0.00008612
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 105 PSNR: 27.4936 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 105 SSIM: 0.9014 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 105 LPIPS: 0.0475 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 105	Time: 2602.7445	Image Loss: 0.1404	Mask Loss: 0.0006	LossTotal: 268.8176	LearningRate 0.00008586
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 106 PSNR: 27.5477 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 106 SSIM: 0.9044 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 106 LPIPS: 0.0476 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 106	Time: 2603.1592	Image Loss: 0.2581	Mask Loss: 0.0006	LossTotal: 273.4384	LearningRate 0.00008560
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 107 PSNR: 27.1813 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 107 SSIM: 0.9002 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 107 LPIPS: 0.0511 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 107	Time: 2595.0170	Image Loss: 0.1826	Mask Loss: 0.0006	LossTotal: 271.3546	LearningRate 0.00008534
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 108 PSNR: 27.3758 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 108 SSIM: 0.9039 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 108 LPIPS: 0.0471 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 108	Time: 2595.6351	Image Loss: 0.1268	Mask Loss: 0.0006	LossTotal: 267.2190	LearningRate 0.00008508
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 109 PSNR: 27.2384 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 109 SSIM: 0.9000 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 109 LPIPS: 0.0470 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 109	Time: 2593.2710	Image Loss: 0.2322	Mask Loss: 0.0006	LossTotal: 271.8895	LearningRate 0.00008481
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 110 PSNR: 27.4790 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 110 SSIM: 0.9033 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 110 LPIPS: 0.0468 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 110	Time: 2594.0643	Image Loss: 0.1670	Mask Loss: 0.0006	LossTotal: 268.9210	LearningRate 0.00008454
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 111 PSNR: 27.0522 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 111 SSIM: 0.9030 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 111 LPIPS: 0.0461 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 111	Time: 2595.4827	Image Loss: 0.0982	Mask Loss: 0.0006	LossTotal: 266.6949	LearningRate 0.00008428
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 112 PSNR: 27.3881 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 112 SSIM: 0.9026 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 112 LPIPS: 0.0461 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 112	Time: 2594.1545	Image Loss: 0.0294	Mask Loss: 0.0006	LossTotal: 267.0431	LearningRate 0.00008400
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 113 PSNR: 26.9744 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 113 SSIM: 0.9025 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 113 LPIPS: 0.0467 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 113	Time: 2595.2756	Image Loss: 0.1592	Mask Loss: 0.0005	LossTotal: 267.9071	LearningRate 0.00008373
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 114 PSNR: 27.2078 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 114 SSIM: 0.8999 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 114 LPIPS: 0.0473 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 114	Time: 2593.1265	Image Loss: 0.0583	Mask Loss: 0.0006	LossTotal: 264.2904	LearningRate 0.00008346
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 115 PSNR: 27.3796 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 115 SSIM: 0.9034 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 115 LPIPS: 0.0463 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 115	Time: 2594.1547	Image Loss: 0.0522	Mask Loss: 0.0005	LossTotal: 270.1954	LearningRate 0.00008318
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 116 PSNR: 27.4234 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 116 SSIM: 0.9043 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 116 LPIPS: 0.0474 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 116	Time: 2594.3009	Image Loss: 0.2011	Mask Loss: 0.0005	LossTotal: 269.2916	LearningRate 0.00008290
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 117 PSNR: 27.3032 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 117 SSIM: 0.9043 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 117 LPIPS: 0.0466 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 117	Time: 2593.3831	Image Loss: 0.1188	Mask Loss: 0.0005	LossTotal: 269.8172	LearningRate 0.00008262
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 118 PSNR: 27.5055 --- best_epoch 98 Best_PSNR 27.6911]
+[epoch 118 SSIM: 0.9032 --- best_epoch 73 Best_SSIM 0.9066]
+[epoch 118 LPIPS: 0.0471 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 118	Time: 2593.3635	Image Loss: 0.1304	Mask Loss: 0.0005	LossTotal: 263.3461	LearningRate 0.00008234
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 119 PSNR: 27.8238 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 119 SSIM: 0.9075 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 119 LPIPS: 0.0459 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 119	Time: 2595.8349	Image Loss: 0.0777	Mask Loss: 0.0005	LossTotal: 261.5393	LearningRate 0.00008205
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 120 PSNR: 27.4244 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 120 SSIM: 0.9049 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 120 LPIPS: 0.0467 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 120	Time: 2594.7717	Image Loss: 0.1117	Mask Loss: 0.0005	LossTotal: 269.7404	LearningRate 0.00008177
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 121 PSNR: 27.5520 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 121 SSIM: 0.9043 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 121 LPIPS: 0.0466 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 121	Time: 2593.7656	Image Loss: 0.0732	Mask Loss: 0.0005	LossTotal: 264.9853	LearningRate 0.00008148
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 122 PSNR: 27.7151 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 122 SSIM: 0.9061 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 122 LPIPS: 0.0458 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 122	Time: 2594.5307	Image Loss: 0.2380	Mask Loss: 0.0005	LossTotal: 270.5678	LearningRate 0.00008119
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 123 PSNR: 27.5347 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 123 SSIM: 0.9047 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 123 LPIPS: 0.0457 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 123	Time: 2595.0355	Image Loss: 0.0375	Mask Loss: 0.0005	LossTotal: 262.6054	LearningRate 0.00008090
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 124 PSNR: 27.4038 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 124 SSIM: 0.9033 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 124 LPIPS: 0.0495 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 124	Time: 2593.8054	Image Loss: 0.0643	Mask Loss: 0.0005	LossTotal: 260.9667	LearningRate 0.00008061
+------------------------------------------------------------------
+train loader length: {} 1995
+[epoch 125 PSNR: 27.5143 --- best_epoch 119 Best_PSNR 27.8238]
+[epoch 125 SSIM: 0.9014 --- best_epoch 119 Best_SSIM 0.9075]
+[epoch 125 LPIPS: 0.0466 --- best_epoch 98 Best_LPIPS 0.0450]
+------------------------------------------------------------------
+Epoch: 125	Time: 2595.9159	Image Loss: 0.1153	Mask Loss: 0.0005	LossTotal: 266.2113	LearningRate 0.00008032
+------------------------------------------------------------------
+train loader length: {} 1995

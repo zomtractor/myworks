@@ -1,9 +1,12 @@
 import torch
 
-from model import MyNet, EBlock, DBlockPred
+from model import MyNet2, UBlock
+from torchsummary import summary
 
 if __name__ == '__main__':
-    model = MyNet(16)
-    x = torch.randn(4, 3, 256, 256)  # Batch size of 1, 3 channels, 512x512 image
-    pred,flare= model(x)
-    print(pred,flare)  # Should be (1, 3, 512, 512)
+    x = torch.randn(2, 3, 256, 256)  # Batch size of 1, 3 channels, 512x512 image
+    model = UBlock(base_channels=4)
+    y=model(x)
+    print(y.shape)
+
+

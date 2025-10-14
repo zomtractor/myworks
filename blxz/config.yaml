@@ -1,0 +1,64 @@
+#Configuration
+VERBOSE: False
+MODEL:
+  # MODE: 'DeFlare'
+  # MODE: 'DeFlare_bs_4'
+  # MODE: 'DeFlare_bs_8'
+  # MODE: 'DeFlare_bs_12'
+  # MODE: 'DeFlare_l1_0.1'
+  # MODE: 'DeFlare_l1_0.05'
+  # MODE: 'DeFlare_l1_0.002'
+  # MODE: 'DeFlare_l1_0.001'
+  # MODE: 'DeFlare_l2_0.1'
+  MODE: 'DeFlare_l2_0.05'
+  # MODE: 'DeFlare_l2_0.002'
+  # MODE: 'DeFlare_l2_0.001'
+# Optimization arguments.
+TRAINOPTIM:
+  BATCH: 16 # origin: 2
+  EPOCHS: 300
+  # NEPOCH_DECAY: [10]
+  LR_INITIAL: 1e-4 #origin: 2e-4
+  LR_MIN: 1e-7 # origin: 1e-6
+  # BETA1: 0.9
+TRAINING:
+  VAL_AFTER_EVERY: 1
+  RESUME: True
+  TRAIN_PS: 256 # origin: 256
+  VAL_PS: 512
+  #TRAIN_DIR: '/data/zbl/deflare/FlareDataSet2/SmallTrain'       # path to training data
+  # TRAIN_DIR: '/mnt/sdb/zbl/FlareDataSet4/train'       # path to training data
+  TRAIN_DIR: '/mnt/zjy/DataSet/FlareDataSet/FlareDataSet4/train'       # path to training data
+  # VAL_DIR: '/mnt/sdb/zbl/FlareDataSet2/test/synthetic'
+  VAL_DIR: '/mnt/zjy/DataSet/flare_real_test'
+  SAVE_DIR: './checkpoints'           # path to save models and images
+TESTING:
+  TEST_PS: None
+  TEST_DIR: '/mnt/zjy/DataSet/flare_real_test' # path to validation data
+  # TEST_DIR: '/mnt/zjy/DataSet/MIPI/train_2k' # path to validation data
+  # TEST_DIR: '/mnt/zbl/deflare/DataSet/test_day/real' # path to validation data
+  TEST_DIR_SYN: '/mnt/zjy/DataSet/flare_synthetic_test' # path to validation data
+  # WEIGHT_ROOT: './checkpoints'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_bs_4/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_bs_8/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_bs_12/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l1_0.1/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l1_0.05/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l1_0.002/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l1_0.001/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l2_0.1/models'
+  WEIGHT_ROOT: './checkpoints/DeFlare_l2_0.05/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l2_0.002/models'
+  # WEIGHT_ROOT: './checkpoints/DeFlare_l2_0.001/models'
+  # WEIGHT_NAME: '/best194.pth'    # our best
+  # WEIGHT_NAME: '/model_epoch_221.pth'      # bs 4
+  # WEIGHT_NAME: '/model_epoch_216.pth'      # bs 8
+  # WEIGHT_NAME: '/model_epoch_203.pth'      # bs 12
+  # WEIGHT_NAME: '/model_epoch_205.pth'      # l1 0.1
+  # WEIGHT_NAME: '/model_epoch_205.pth'      # l1 0.05
+  # WEIGHT_NAME: '/model_epoch_197.pth'      # l1 0.002
+  # WEIGHT_NAME: '/model_epoch_195.pth'      # l1 0.001
+  # WEIGHT_NAME: '/model_epoch_203.pth'      # l2 0.1
+  WEIGHT_NAME: '/model_epoch_212.pth'      # l2 0.05
+  # WEIGHT_NAME: '/model_epoch_202.pth'      # l2 0.002
+  # WEIGHT_NAME: '/model_epoch_204.pth'      # l2 0.001

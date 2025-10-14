@@ -1,0 +1,39 @@
+#Configuration
+VERBOSE: False  # 是否输出详细日志
+MODEL:
+  NAME: 'Model0204_MWA'  # model name
+  TRAIN_BATCH: '01'  # 训练批次 1e-4~1e-5   
+  # TRAIN_BATCH: '02'  # 训练批次   1e-4~5e-5  winsize 16
+  DESCRIBE: 'MWA'
+
+#Optimization arguments
+TRAINOPTIM:
+  BATCH: 12
+  EPOCHS: 200
+  LR_INITIAL: 1e-4
+  LR_MIN: 1e-5
+  WARMUP_EPOCHS: 3
+
+TRAINING:
+  VAL_AFTER_EVERY: 1
+  RESUME: false # 在base model上训练
+  TRAIN_PS: 256
+  VAL_PS: 256
+  TRAIN_DIR: '/mnt/zjy/DataSet/data/zbl/deflare/FlareDataSet5/train'       # path to training data Flare 7k++
+  # TRAIN_DIR: '/mnt/zjy/DataSet/FlareDataSet/FlareDataSet4/train'       # path to training data
+  VAL_DIR: '/mnt/zjy/DataSet/flare_real_test'
+  SAVE_DIR: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/checkpoints'           # path to save models and images
+  LOG_DIR: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/train_logs'
+  TRAIN_RESULT: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/training_data/result'
+  TRAIN_HEATMAP: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/training_data/heatmap'
+  TRAIN_MASK: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/training_data/mask'
+
+TESTING:
+  TEST_PS: None
+  TEST_DIR: '/mnt/zjy/DataSet/flare_real_test' # path to validation data
+  TEST_DIR_SYN: '/mnt/zjy/DataSet/flare_synthetic_test' # path to validation data
+  WEIGHT_ROOT: '/mnt/zjy/zjy_flare_removal/PackageFlareRemoval/checkpoints'
+  SSIM_WEIGHT_NAME: '/model_bestSSIM_epoch.pth'
+  LPIPS_WEIGHT_NAME: '/model_bestLPIPS.pth'
+  PSNR_WEIGHT_NAME: '/model_bestPSNR.pth'
+
