@@ -42,7 +42,7 @@ class DrConv(nn.Module):
 
 
 class BasicDrConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_length=3, stride=1,padding='same', direction=0, bias=True,dilation=1,groups=1, norm=True, relu=True):
+    def __init__(self, in_channels, out_channels, kernel_length=3, stride=1,padding='same', direction=0, bias=True,dilation=1,groups=1, norm=False, relu=True):
         super().__init__()
         self.conv = DrConv(in_channels, out_channels, kernel_length, direction=direction,padding=padding, stride=stride, bias=bias,dilation=dilation,groups=groups)
         self.bn = nn.BatchNorm2d(out_channels) if norm else nn.Identity()

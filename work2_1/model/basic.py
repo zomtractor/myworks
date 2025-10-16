@@ -2,8 +2,12 @@ import torch.nn as nn
 
 
 class BasicConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,padding='same', bias=True,dilation=1,groups=1, norm=True, relu=True, trans=False,act=nn.ReLU):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,padding=None, bias=True,dilation=1,groups=1, norm=False, relu=True, trans=False,act=nn.GELU):
         super().__init__()
+        self.bn=None
+        self.relu=None
+        if padding is None:
+            padding = kernel_size // 2
         if trans:
             padding = kernel_size // 2 - 1
             self.conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,padding=padding,
@@ -11,11 +15,18 @@ class BasicConv(nn.Module):
         else:
             self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride,padding=padding, bias=bias,
                                   dilation=dilation,groups=groups)
-        self.bn = nn.BatchNorm2d(out_channels) if norm else nn.Identity()
-        self.act = act() if relu else nn.Identity()
+        if norm:
+            self.bn = nn.BatchNorm2d(out_channels)
+        if relu:
+            self.act = act()
 
     def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
+        res = self.conv(x)
+        if self.bn is not None:
+            res = self.bn(res)
+        if self.act is not None:
+            res = self.act(res)
+        return res
 
 
 class SEBlock(nn.Module):

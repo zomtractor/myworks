@@ -133,12 +133,11 @@ def GTB(x, layer=4):
     return res_gaussian, res_laplacian
 
 
+# pixelshuffle
 class DownSample(nn.Module):
     def __init__(self, in_channels, out_channels, downscale_factor=2):
         super(DownSample, self).__init__()
-        self.down = nn.PixelUnshuffle(downscale_factor)
-        self.conv = nn.Conv2d(in_channels * (downscale_factor ** 2), out_channels, kernel_size=3, stride=1, padding=1,
-                              groups=in_channels)
+        self.down = nn.Conv2d(in_channels, out_channels*2**downscale_factor)
 
     def forward(self, x):
         x = self.down(x)
@@ -183,7 +182,7 @@ class MyNet2(nn.Module):
 
         self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
-        self.projout = BasicConv(base_channels, 6, kernel_size=3, padding=1, norm=False, relu=False)
+        self.projout = BasicConv(base_channels, 6, kernel_size=1, padding=0, norm=False, relu=False)
     def scale(self,x, factor):
         _, _, h, w = x.size()
         new_h = int(h * factor)
