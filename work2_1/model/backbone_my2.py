@@ -135,10 +135,10 @@ def GTB(x, layer=4):
 
 # pixelshuffle
 class DownSample(nn.Module):
-    def __init__(self, in_channels, out_channels, downscale_factor=2):
+    def __init__(self, in_channels, out_channels):
         super(DownSample, self).__init__()
-        self.down = nn.Conv2d(in_channels, out_channels*2**downscale_factor)
-
+        self.down = nn.PixelUnshuffle(2)
+        self.conv = BasicConv(in_channels*4, out_channels, kernel_size=3, stride=1, padding=1)
     def forward(self, x):
         x = self.down(x)
         x = self.conv(x)
@@ -146,11 +146,10 @@ class DownSample(nn.Module):
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels, out_channels, upscale_factor=2):
+    def __init__(self, in_channels, out_channels):
         super(UpSample, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels * (upscale_factor ** 2), kernel_size=3, stride=1, padding=1,
-                              groups=out_channels)
-        self.up = nn.PixelShuffle(upscale_factor)
+        self.conv = BasicConv(in_channels, out_channels*4, kernel_size=3, stride=1, padding=1)
+        self.up = nn.PixelShuffle(2)
 
     def forward(self, x):
         x = self.conv(x)
