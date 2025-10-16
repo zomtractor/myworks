@@ -5,7 +5,7 @@ class BasicConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1,padding=None, bias=True,dilation=1,groups=1, norm=False, relu=True, trans=False,act=nn.GELU):
         super().__init__()
         self.bn=None
-        self.relu=None
+        self.act=None
         if padding is None:
             padding = kernel_size // 2
         if trans:
