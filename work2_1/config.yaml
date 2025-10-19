@@ -8,14 +8,14 @@ MODEL:
 #    data: 'ITS'
 #    base_channel: 32
   MODE: 'DeFlare'
-  ARCH: 'UBlock'
+  ARCH: 'MyNet2'
   ARGS:
-    in_channels: 3
-    base_channels: 20
+#    in_channels: 3
+    base_channels: 16
 
 # Optimization arguments.
 TRAINOPTIM:
-  BATCH: 4 # origin: 2
+  BATCH: 8 # origin: 2
   EPOCHS: 300
   DEVICES: 1
   # NEPOCH_DECAY: [10]
@@ -23,7 +23,7 @@ TRAINOPTIM:
   LR_MIN: 1e-6 # origin: 1e-6
   # BETA1: 0.9
 DATASET:
-  LENGTH: 32 # origin: 8192
+  LENGTH: 21000 # origin: 8192
   MODE: 'Flare7Kpp'  # 'local','Flare7K','Flare7Kpp'
   LOCAL_DIR: './dataset/flare7k_local' # path to local dataset
   BACKGROUND_DIR: './dataset/Flickr24K' # path to background image
@@ -32,7 +32,7 @@ DATASET:
   REFLECTIVE_PROPORTION: 1.0 # proportion of reflective images in the dataset
 TRAINING:
   VAL_AFTER_EVERY: 1
-  RESUME: False
+  RESUME: True
   TRAIN_PS: 256 # origin: 256
   VAL_PS: 512
   TRAIN_DIR: './dataset/flare7k_local'       # path to local
@@ -56,7 +56,7 @@ TRAINING:
     REAL_SAVE: './val_result_real'
     SYN_DIR: './dataset/Flare7Kpp/test_data/synthetic'
     SYN_SAVE: './val_result_syn'
-  SAVE_DIR: './checkpoints'           # path to save models and images
+  SAVE_DIR: 'checkpoints'           # path to save models and images
   SAVE_AFTER_EVERY: 5
 TESTING:
   TEST_PS: None

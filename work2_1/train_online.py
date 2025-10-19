@@ -20,14 +20,18 @@ import model
 import utils
 from data import get_training_data, get_validation_data
 from model import CombinedLoss
-from utils import network_parameters
+from utils import network_parameters, MinIOHelper
 from utils.mask_utils import calculate_metrics
 from warmup_scheduler import GradualWarmupScheduler
+import threading
+
+
 def assertLimited():
     start_time = datetime.time(7, 00)  # 7:40
-    end_time = datetime.time(8, 15)    # 8:10
+    end_time = datetime.time(8, 15)  # 8:10
     assert not (start_time <= datetime.datetime.now().time() <= end_time), "当前时间位于禁止时间段 7:40~8:10 内"
     print("assert passed")
+
 
 def init_torch_config(config):
     warnings.filterwarnings("ignore")
@@ -40,9 +44,9 @@ def init_torch_config(config):
     torch.manual_seed(my_seed)
     torch.cuda.manual_seed_all(my_seed)
     torch.set_float32_matmul_precision('high')
-    #torch.set_anomaly_enabled(True)
+    # torch.set_anomaly_enabled(True)
     # fabric = Fabric(accelerator="cuda", devices=2, strategy="ddp_find_unused_parameters_true")
-    fabric = Fabric(accelerator="cuda",devices=config['TRAINOPTIM']['DEVICES'])
+    fabric = Fabric(accelerator="cuda", devices=config['TRAINOPTIM']['DEVICES'])
     fabric.launch()
     return fabric
 
@@ -68,6 +72,7 @@ def get_data_loaders(config, fabric):
     # real_val_loader = fabric.setup_dataloaders(real_val_loader)
     # syn_val_loader = fabric.setup_dataloaders(syn_val_loader)
     return train_loader, real_val_loader, syn_val_loader
+
 
 def load_model(config, fabric):
     Train = config['TRAINING']
@@ -115,10 +120,11 @@ def load_model(config, fabric):
                 print('------------------------------------------------------------------')
                 print("==> Resuming Training with learning rate:", new_lr)
                 print('------------------------------------------------------------------')
-        except Exception as e:
+            else:
+                print('No checkpoint found, starting from scratch.')
+        except :
             print('checkpoint load failed, start from scratch.')
-        else:
-            print('No checkpoint found, starting from scratch.')
+
     # Show the training configuration
     print(f'''==> Training details:
         ------------------------------------------------------------------
@@ -149,6 +155,7 @@ def load_config():
     writer = SummaryWriter(log_dir=log_dir, filename_suffix=f'_{mode}')
     return opt, writer
 
+
 def precompute_padding(h, w, k=16):
     w_pad = math.ceil(w / k) * k - w
     h_pad = math.ceil(h / k) * k - h
@@ -157,12 +164,15 @@ def precompute_padding(h, w, k=16):
     w_pad_right = w_pad_left + (w_pad % 2)
     h_pad_bottom = h_pad_top + (h_pad % 2)
     return h_pad_top, h_pad_bottom, w_pad_left, w_pad_right
+
+
 def validate(config, name, model_restored, val_loader, record_dict, loss_fn):
     Train = config['TRAINING']
     val_dir = Train['VAL'][f'{name}_DIR']
     gt_path = os.path.join(val_dir, 'gt')
     input_path = Train['VAL'][f'{name}_SAVE']
     mask_path = os.path.join(val_dir, 'mask')
+    return_str = None
 
     model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
 
@@ -178,7 +188,7 @@ def validate(config, name, model_restored, val_loader, record_dict, loss_fn):
         h_pad_top, h_pad_bottom, w_pad_left, w_pad_right = precompute_padding(h, w)
 
         # 使用反射填充可能比零填充更好
-        input_padded = torch.nn.functional.pad(input_,(w_pad_left, w_pad_right, h_pad_top, h_pad_bottom))
+        input_padded = torch.nn.functional.pad(input_, (w_pad_left, w_pad_right, h_pad_top, h_pad_bottom))
 
         with torch.no_grad():
             restored = model_restored(input_padded)[0]
@@ -208,7 +218,7 @@ def validate(config, name, model_restored, val_loader, record_dict, loss_fn):
                 future.result()
     psnr_val_rgb, ssim_val_rgb, lpips_val_rgb, score_val_rgb, Gpsnr_val_rgb, Spsnr_val_rgb = calculate_metrics(
         gt_path, input_path, mask_path, loss_fn)
-    assert not (math.fabs(psnr_val_rgb-10.6835)<1e-5), "nan or inf in PSNR calculation"
+    assert not (math.fabs(psnr_val_rgb - 10.6835) < 1e-5), "nan or inf in PSNR calculation"
     # Save the best PSNR model of validation
     if psnr_val_rgb > record_dict['best_psnr']:
         record_dict['best_psnr'] = psnr_val_rgb
@@ -288,9 +298,19 @@ def validate(config, name, model_restored, val_loader, record_dict, loss_fn):
     writer.add_scalar(f'val/Gpsnr_{name}', Gpsnr_val_rgb, epoch)
     writer.add_scalar(f'val/Spsnr_{name}', Spsnr_val_rgb, epoch)
 
+def save_to_minio(file_path):
+    minio_helper = MinIOHelper(
+            endpoint='47.95.21.85:9000',
+            access_key='admin',
+            secret_key='admin666',
+            secure=False)
+    def upload():
+        minio_helper.upload_file(file_path)
+        print(f'==> Upload {file_path} to minio successfully!')
+    threading.Thread(target=upload).start()
+
 
 if __name__ == '__main__':
-
 
     # Start training!
     print('==> Training start: ')
@@ -331,8 +351,6 @@ if __name__ == '__main__':
         best_real_dict = checkpoint['best_real_dict']
         best_syn_dict = checkpoint['best_syn_dict']
         print("load indices from checkpoint succeed.")
-    else:
-        print('No checkpoint found, starting from scratch.')
 
     train_loader, real_val_loader, syn_val_loader = get_data_loaders(config, fabric)
     total_start_time = time.time()
@@ -364,12 +382,12 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             target = data[0].cuda()
             input_ = data[1].cuda()
-            flare =  data[2].cuda()
-            restored,flarepred = model_restored(input_)
+            flare = data[2].cuda()
+            restored, flarepred = model_restored(input_)
 
             loss1_gt = combined_gt_loss1(restored, target)
             loss1_flare = combined_flare_loss1(flarepred, flare)
-            loss = loss1_gt+0.1*loss1_flare
+            loss = loss1_gt + 0.1 * loss1_flare
             # Back propagation
             # loss.backward()
             fabric.backward(loss)
@@ -381,11 +399,12 @@ if __name__ == '__main__':
         if fabric.is_global_zero:
 
             if epoch % Train['VAL_AFTER_EVERY'] == 0:
-                validate(config,'REAL',model_restored,  real_val_loader, best_real_dict,loss_fn_alex)
-                validate(config,'SYN',model_restored,  syn_val_loader, best_syn_dict,loss_fn_alex)
+                validate(config, 'REAL', model_restored, real_val_loader, best_real_dict, loss_fn_alex)
+                validate(config, 'SYN', model_restored, syn_val_loader, best_syn_dict, loss_fn_alex)
             print("------------------------------------------------------------------")
             print(
-                "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time, scheduler.get_lr()[0]))
+                "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,
+                                                                      scheduler.get_lr()[0]))
             combined_gt_loss1.print_cumulative_loss()
             combined_gt_loss1.clear_cumulative_loss()
             combined_flare_loss1.print_cumulative_loss()
@@ -399,6 +418,7 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
+            save_to_minio(os.path.join(model_dir, "model_latest.pth"))
 
             writer.add_scalar('train/loss', epoch_loss, epoch)
             writer.add_scalar('train/ssim_loss', epoch_ssim_loss, epoch)
