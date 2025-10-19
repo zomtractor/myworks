@@ -26,3 +26,7 @@ joblib
 natsort
 h5py
 tqdm
+lpips
+focal_frequency_loss
+kaggle
+minio
