@@ -3,17 +3,8 @@ import math
 import cv2
 import torch
 
+from utils import result_logger
 from utils.mask_utils import calculate_metrics
-
-import logging
-
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.FileHandler('result.log.txt'))
 
 def validate(epoch, config, ds_type, fetch_input_fn, val_loader, record_dict, lpips_fn, writer):
     res=[]
@@ -23,7 +14,7 @@ def validate(epoch, config, ds_type, fetch_input_fn, val_loader, record_dict, lp
     input_path = Train['VAL'][f'{ds_type}_SAVE']
     mask_path = os.path.join(val_dir, 'mask')
     print(f'==> Validation on {ds_type} dataset=====================================================')
-    logger.info(f'==> Validation on {ds_type} dataset=====================================================')
+    result_logger.info(f'==> Validation on {ds_type} dataset=====================================================')
 
     # 处理验证数据并保存图像
     for ii, data_val in enumerate(val_loader, 0):
@@ -79,7 +70,7 @@ def validate(epoch, config, ds_type, fetch_input_fn, val_loader, record_dict, lp
         print(
             f"[epoch {epoch} {display_name}: {current_value:.4f} --- best_epoch {record_dict[best_epoch_key]} Best_{display_name} {record_dict[best_metric_key]:.4f}]")
 
-        logger.info(
+        result_logger.info(
             f"[epoch {epoch} {display_name}: {current_value:.4f} --- best_epoch {record_dict[best_epoch_key]} Best_{display_name} {record_dict[best_metric_key]:.4f}]")
 
         # 记录到tensorboard

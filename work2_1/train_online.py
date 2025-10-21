@@ -161,7 +161,11 @@ def load_config():
 
 def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
     minio_helper.upload_file(os.path.join(model_dir, "model_latest.pth"))
-    minio_helper.upload_file("result.log.txt")
+    # 父目录
+    minio_helper.upload_file(os.path.join(os.path.dirname(model_dir), "result.log.txt"))
+    minio_helper.upload_file(os.path.join(os.path.dirname(model_dir), "minio.log.txt"))
+
+
     for best_type in update_real_list:
         minio_helper.copy_file_local_remote(
             os.path.join(model_dir, "model_latest.pth"),
@@ -174,12 +178,6 @@ def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
 
 if __name__ == '__main__':
 
-    minio_helper = MinIOHelper(
-            endpoint='objectstorageapi.ap-northeast-1.clawcloudrun.com',
-            access_key='16bqw05c',
-            secret_key='h8zdm5kg6k9kg26z',
-            bucket_name="16bqw05c-mywork",
-            secure=True)
     # Start training!
     print('==> Training start: ')
     best_real_dict = {
@@ -212,6 +210,8 @@ if __name__ == '__main__':
     }
 
     config, writer = load_config()
+    minio_helper = MinIOHelper(**config['MINIO'])
+
     fabric = init_torch_config(config)
     model_restored, checkpoint, optimizer, scheduler, start_epoch = load_model(config, fabric)
 

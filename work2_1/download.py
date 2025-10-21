@@ -1,8 +1,8 @@
+import yaml
+
 from utils import MinIOHelper
 
-minio_helper = MinIOHelper(
-            endpoint='47.95.21.85:9000',
-            access_key='admin',
-            secret_key='admin666',
-            secure=False)
+with open('config.yaml', 'r') as config:
+    opt = yaml.safe_load(config)
+minio_helper = MinIOHelper(**opt['MINIO'])
 minio_helper.download_bucket()

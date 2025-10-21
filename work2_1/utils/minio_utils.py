@@ -12,14 +12,8 @@ from pathlib import Path
 from minio import Minio
 from minio.commonconfig import CopySource
 from minio.error import S3Error
-import logging
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from utils import minio_logger
 
 
 class MinIOHelper:
@@ -53,11 +47,11 @@ class MinIOHelper:
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
-                logger.info(f"Bucket '{self.bucket_name}' 创建成功")
+                minio_logger.info(f"Bucket '{self.bucket_name}' 创建成功")
             else:
-                logger.info(f"Bucket '{self.bucket_name}' 已存在")
+                minio_logger.info(f"Bucket '{self.bucket_name}' 已存在")
         except S3Error as e:
-            logger.error(f"检查/创建bucket时出错: {e}")
+            minio_logger.error(f"检查/创建bucket时出错: {e}")
             raise
 
     def _get_file_md5(self, file_path):
@@ -81,7 +75,7 @@ class MinIOHelper:
             return object_name
         else:
             # 如果文件不在checkpoints目录中，直接使用文件名
-            logger.warning(f"文件不在checkpoints目录中，将使用文件名作为对象名: {file_path.name}")
+            minio_logger.warning(f"文件不在checkpoints目录中，将使用文件名作为对象名: {file_path.name}")
             return file_path.name
 
     def _get_local_path_from_object(self, object_name):
@@ -94,7 +88,7 @@ class MinIOHelper:
         保持目录结构一致
         """
         try:
-            logger.info(f"开始下载bucket '{self.bucket_name}' 到本地目录 '{self.local_dir}'")
+            minio_logger.info(f"开始下载bucket '{self.bucket_name}' 到本地目录 '{self.local_dir}'")
 
             # 获取bucket中的所有对象
             objects = self.client.list_objects(self.bucket_name, recursive=True)
@@ -114,12 +108,12 @@ class MinIOHelper:
                     str(local_path)
                 )
                 downloaded_count += 1
-                logger.info(f"下载文件: {obj.object_name}")
+                minio_logger.info(f"下载文件: {obj.object_name}")
 
-            logger.info(f"下载完成! 共下载 {downloaded_count} 个文件")
+            minio_logger.info(f"下载完成! 共下载 {downloaded_count} 个文件")
 
         except S3Error as e:
-            logger.error(f"下载bucket时出错: {e}")
+            minio_logger.error(f"下载bucket时出错: {e}")
             raise
 
     def download_file(self, remote_object_name, local_path=None):
@@ -147,11 +141,11 @@ class MinIOHelper:
                 str(local_path)
             )
 
-            logger.info(f"文件下载成功: {remote_object_name} -> {local_path}")
+            minio_logger.info(f"文件下载成功: {remote_object_name} -> {local_path}")
             return True
 
         except S3Error as e:
-            logger.error(f"下载文件时出错: {e}")
+            minio_logger.error(f"下载文件时出错: {e}")
             return False
 
     def upload_file(self, file_path):
@@ -164,13 +158,13 @@ class MinIOHelper:
         try:
             # 检查文件是否存在
             if not os.path.isfile(file_path):
-                logger.error(f"文件不存在: {file_path}")
+                minio_logger.error(f"文件不存在: {file_path}")
                 return False
 
             # 获取对象名称
             object_name = self._get_relative_object_name(file_path)
 
-            logger.info(f"上传文件: {file_path} -> {object_name}")
+            minio_logger.info(f"上传文件: {file_path} -> {object_name}")
 
             # 上传文件（强制替换）
             self.client.fput_object(
@@ -179,11 +173,11 @@ class MinIOHelper:
                 str(file_path)
             )
 
-            logger.info(f"文件上传成功: {object_name}")
+            minio_logger.info(f"文件上传成功: {object_name}")
             return True
 
         except S3Error as e:
-            logger.error(f"上传文件时出错: {e}")
+            minio_logger.error(f"上传文件时出错: {e}")
             return False
 
     def copy_file_local_remote(self, source_path, target_path):
@@ -200,7 +194,7 @@ class MinIOHelper:
 
             # 1. 本地复制
             if not source_path.exists():
-                logger.error(f"源文件不存在: {source_path}")
+                minio_logger.error(f"源文件不存在: {source_path}")
                 return False
 
             # 确保目标目录存在
@@ -208,7 +202,7 @@ class MinIOHelper:
 
             # 执行本地复制
             shutil.copy2(source_path, target_path)
-            logger.info(f"本地复制完成: {source_path} -> {target_path}")
+            minio_logger.info(f"本地复制完成: {source_path} -> {target_path}")
 
             # 2. 远程复制（使用服务器端复制）
             source_object_name = self._get_relative_object_name(source_path)
@@ -224,7 +218,7 @@ class MinIOHelper:
                     target_object_name,
                     CopySource(self.bucket_name,source_object_name)
                 )
-                logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
+                minio_logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
             except S3Error:
                 # 如果远程源文件不存在，直接上传目标文件
@@ -233,12 +227,12 @@ class MinIOHelper:
                     target_object_name,
                     str(target_path)
                 )
-                logger.info(f"远程文件已上传: {target_object_name}")
+                minio_logger.info(f"远程文件已上传: {target_object_name}")
 
             return True
 
         except Exception as e:
-            logger.error(f"复制文件时出错: {e}")
+            minio_logger.error(f"复制文件时出错: {e}")
             return False
 
     def move_file_local_remote(self, source_path, target_path):
@@ -254,7 +248,7 @@ class MinIOHelper:
             target_path = Path(target_path)
 
             if not source_path.exists():
-                logger.error(f"源文件不存在: {source_path}")
+                minio_logger.error(f"源文件不存在: {source_path}")
                 return False
 
             # 获取源文件和目标文件的远程对象名称
@@ -274,7 +268,7 @@ class MinIOHelper:
 
             # 执行本地移动
             shutil.move(str(source_path), str(target_path))
-            logger.info(f"本地移动完成: {source_path} -> {target_path}")
+            minio_logger.info(f"本地移动完成: {source_path} -> {target_path}")
 
             # 3. 远程操作
             if remote_exists:
@@ -286,11 +280,11 @@ class MinIOHelper:
                         target_object_name,
                         CopySource(self.bucket_name,source_object_name)
                     )
-                    logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
+                    minio_logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
                     # 删除源对象
                     self.client.remove_object(self.bucket_name, source_object_name)
-                    logger.info(f"远程删除源文件: {source_object_name}")
+                    minio_logger.info(f"远程删除源文件: {source_object_name}")
                 else:
                     # 如果对象名称相同，只需要重新上传（因为文件内容可能已改变）
                     self.client.fput_object(
@@ -298,7 +292,7 @@ class MinIOHelper:
                         target_object_name,
                         str(target_path)
                     )
-                    logger.info(f"远程文件已更新: {target_object_name}")
+                    minio_logger.info(f"远程文件已更新: {target_object_name}")
             else:
                 # 如果远程源文件不存在，直接上传目标文件
                 self.client.fput_object(
@@ -306,12 +300,12 @@ class MinIOHelper:
                     target_object_name,
                     str(target_path)
                 )
-                logger.info(f"远程文件已上传: {target_object_name}")
+                minio_logger.info(f"远程文件已上传: {target_object_name}")
 
             return True
 
         except Exception as e:
-            logger.error(f"移动文件时出错: {e}")
+            minio_logger.error(f"移动文件时出错: {e}")
             return False
 
     def copy_remote(self, source_object_name, target_object_name):
@@ -333,11 +327,11 @@ class MinIOHelper:
                 CopySource(self.bucket_name,source_object_name)
             )
 
-            logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
+            minio_logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
             return True
 
         except S3Error as e:
-            logger.error(f"远程复制时出错: {e}")
+            minio_logger.error(f"远程复制时出错: {e}")
             return False
 
     def move_remote(self, source_object_name, target_object_name):
@@ -358,16 +352,16 @@ class MinIOHelper:
                 target_object_name,
                 CopySource(self.bucket_name,source_object_name)
             )
-            logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
+            minio_logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
             # 2. 删除源对象
             self.client.remove_object(self.bucket_name, source_object_name)
-            logger.info(f"远程删除源文件: {source_object_name}")
+            minio_logger.info(f"远程删除源文件: {source_object_name}")
 
             return True
 
         except S3Error as e:
-            logger.error(f"远程移动时出错: {e}")
+            minio_logger.error(f"远程移动时出错: {e}")
             return False
 
     def copy_both(self, source_path, target_path):
@@ -384,7 +378,7 @@ class MinIOHelper:
 
             # 1. 本地复制
             if not source_path.exists():
-                logger.error(f"源文件不存在: {source_path}")
+                minio_logger.error(f"源文件不存在: {source_path}")
                 return False
 
             # 确保目标目录存在
@@ -392,7 +386,7 @@ class MinIOHelper:
 
             # 执行本地复制
             shutil.copy2(source_path, target_path)
-            logger.info(f"本地复制完成: {source_path} -> {target_path}")
+            minio_logger.info(f"本地复制完成: {source_path} -> {target_path}")
 
             # 2. 远程复制（服务器端）
             source_object_name = self._get_relative_object_name(source_path)
@@ -401,7 +395,7 @@ class MinIOHelper:
             return self.copy_remote(source_object_name, target_object_name)
 
         except Exception as e:
-            logger.error(f"同时复制文件时出错: {e}")
+            minio_logger.error(f"同时复制文件时出错: {e}")
             return False
 
     def move_both(self, source_path, target_path):
@@ -417,7 +411,7 @@ class MinIOHelper:
             target_path = Path(target_path)
 
             if not source_path.exists():
-                logger.error(f"源文件不存在: {source_path}")
+                minio_logger.error(f"源文件不存在: {source_path}")
                 return False
 
             # 获取源文件和目标文件的远程对象名称
@@ -437,7 +431,7 @@ class MinIOHelper:
 
             # 执行本地移动
             shutil.move(str(source_path), str(target_path))
-            logger.info(f"本地移动完成: {source_path} -> {target_path}")
+            minio_logger.info(f"本地移动完成: {source_path} -> {target_path}")
 
             # 3. 远程移动（服务器端）
             if remote_exists:
@@ -447,7 +441,7 @@ class MinIOHelper:
                 return self.upload_file(target_path)
 
         except Exception as e:
-            logger.error(f"同时移动文件时出错: {e}")
+            minio_logger.error(f"同时移动文件时出错: {e}")
             return False
 
     def upload_directory(self, directory_path=None):
@@ -465,7 +459,7 @@ class MinIOHelper:
             local_dir_path = Path(self.local_dir).resolve()
 
             if not directory_path.exists():
-                logger.error(f"目录不存在: {directory_path}")
+                minio_logger.error(f"目录不存在: {directory_path}")
                 return False
 
             uploaded_count = 0
@@ -488,13 +482,13 @@ class MinIOHelper:
                         str(file_path)
                     )
                     uploaded_count += 1
-                    logger.info(f"上传文件: {object_name}")
+                    minio_logger.info(f"上传文件: {object_name}")
 
-            logger.info(f"目录上传完成! 共上传 {uploaded_count} 个文件")
+            minio_logger.info(f"目录上传完成! 共上传 {uploaded_count} 个文件")
             return True
 
         except S3Error as e:
-            logger.error(f"上传目录时出错: {e}")
+            minio_logger.error(f"上传目录时出错: {e}")
             return False
 
     def list_bucket_files(self):
@@ -506,7 +500,7 @@ class MinIOHelper:
                 files.append(obj.object_name)
             return files
         except S3Error as e:
-            logger.error(f"列出文件时出错: {e}")
+            minio_logger.error(f"列出文件时出错: {e}")
             return []
 
     def list_local_files(self):
