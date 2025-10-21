@@ -168,7 +168,7 @@ def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
     for best_type in update_syn_list:
         minio_helper.copy_file_local_remote(
             os.path.join(model_dir, "model_latest.pth"),
-            os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))
+            os.path.join(model_dir, f"model_best_{best_type}_SYN.pth"))
 
 
 if __name__ == '__main__':
