@@ -161,6 +161,7 @@ def load_config():
 
 def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
     minio_helper.upload_file(os.path.join(model_dir, "model_latest.pth"))
+    minio_helper.upload_file("result.log.txt")
     for best_type in update_real_list:
         minio_helper.copy_file_local_remote(
             os.path.join(model_dir, "model_latest.pth"),
