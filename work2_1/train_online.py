@@ -1,6 +1,7 @@
 import math
 import os
 import random
+import shutil
 import time
 import warnings
 import datetime
@@ -25,6 +26,8 @@ from utils import network_parameters, MinIOHelper
 from utils.mask_utils import calculate_metrics
 from warmup_scheduler import GradualWarmupScheduler
 import threading
+
+from validate import validate
 
 
 def assertLimited():
@@ -157,162 +160,14 @@ def load_config():
     return opt, writer
 
 
-def precompute_padding(h, w, k=16):
-    w_pad = math.ceil(w / k) * k - w
-    h_pad = math.ceil(h / k) * k - h
-    w_pad_left = w_pad // 2
-    h_pad_top = h_pad // 2
-    w_pad_right = w_pad_left + (w_pad % 2)
-    h_pad_bottom = h_pad_top + (h_pad % 2)
-    return h_pad_top, h_pad_bottom, w_pad_left, w_pad_right
-
-
-def validate(config, name, model_restored, val_loader, record_dict, loss_fn):
-    Train = config['TRAINING']
-    val_dir = Train['VAL'][f'{name}_DIR']
-    gt_path = os.path.join(val_dir, 'gt')
-    input_path = Train['VAL'][f'{name}_SAVE']
-    mask_path = os.path.join(val_dir, 'mask')
-    return_str = None
-
-    model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
-
-    model_restored.eval()
-    print(f'==> Validation on {name} dataset=====================================================')
-
-    for ii, data_val in enumerate(val_loader, 0):
-        target = data_val[0].cuda()
-        input_ = data_val[1].cuda()
-        b, c, h, w = input_.size()
-
-        # 预计算padding
-        h_pad_top, h_pad_bottom, w_pad_left, w_pad_right = precompute_padding(h, w)
-
-        # 使用反射填充可能比零填充更好
-        input_padded = torch.nn.functional.pad(input_, (w_pad_left, w_pad_right, h_pad_top, h_pad_bottom))
-
-        with torch.no_grad():
-            restored = model_restored(input_padded)[0]
-
-            # 移除padding
-            if h_pad_top + h_pad_bottom > 0:
-                restored = restored[:, :, h_pad_top:-h_pad_bottom or None, :]
-            if w_pad_left + w_pad_right > 0:
-                restored = restored[:, :, :, w_pad_left:-w_pad_right or None]
-
-        # 使用更高效的clamp和转换
-        restored = torch.clamp(restored, 0, 1).mul(255).byte()  # 直接转为0-255的byte
-
-        # 批量处理图像保存
-        restored_np = restored.permute(0, 2, 3, 1).cpu().numpy()  # 移除不必要的detach()
-
-        # 使用多线程保存图像
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor() as executor:
-            futures = []
-            for batch in range(b):
-                img_bgr = cv2.cvtColor(restored_np[batch], cv2.COLOR_RGB2BGR)
-                save_path = os.path.join(input_path, data_val[2][batch] + '.png')
-                futures.append(executor.submit(cv2.imwrite, save_path, img_bgr))
-            # 等待所有保存操作完成
-            for future in futures:
-                future.result()
-    psnr_val_rgb, ssim_val_rgb, lpips_val_rgb, score_val_rgb, Gpsnr_val_rgb, Spsnr_val_rgb = calculate_metrics(
-        gt_path, input_path, mask_path, loss_fn)
-    assert not (math.fabs(psnr_val_rgb - 10.6835) < 1e-5), "nan or inf in PSNR calculation"
-    # Save the best PSNR model of validation
-    if psnr_val_rgb > record_dict['best_psnr']:
-        record_dict['best_psnr'] = psnr_val_rgb
-        record_dict['best_epoch_psnr'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestPSNR_{name}.pth"))
-    print("[epoch %d PSNR: %.4f --- best_epoch %d Best_PSNR %.4f]" % (
-        epoch, psnr_val_rgb, record_dict['best_epoch_psnr'], record_dict['best_psnr']))
-
-    # Save the best SSIM model of validation
-    if ssim_val_rgb > record_dict['best_ssim']:
-        record_dict['best_ssim'] = ssim_val_rgb
-        record_dict['best_epoch_ssim'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestSSIM_{name}.pth"))
-    print("[epoch %d SSIM: %.4f --- best_epoch %d Best_SSIM %.4f]" % (
-        epoch, ssim_val_rgb, record_dict['best_epoch_ssim'], record_dict['best_ssim']))
-
-    # Save the best LPIPS model of validation
-    if lpips_val_rgb < record_dict['best_lpips']:
-        record_dict['best_lpips'] = lpips_val_rgb
-        record_dict['best_epoch_lpips'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestLPIPS_{name}.pth"))
-    print("[epoch %d LPIPS: %.4f --- best_epoch %d Best_LPIPS %.4f]" % (
-        epoch, lpips_val_rgb, record_dict['best_epoch_lpips'], record_dict['best_lpips']))
-    # Save the best score model of validation
-    if score_val_rgb > record_dict['best_score']:
-        record_dict['best_score'] = score_val_rgb
-        record_dict['best_epoch_score'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestScore_{name}.pth"))
-    print("[epoch %d Score: %.4f --- best_epoch %d Best_Score %.4f]" % (
-        epoch, score_val_rgb, record_dict['best_epoch_score'], record_dict['best_score']))
-
-    # Save the best Gpsnr model of validation
-    if Gpsnr_val_rgb > record_dict['best_Gpsnr']:
-        record_dict['best_Gpsnr'] = Gpsnr_val_rgb
-        record_dict['best_epoch_Gpsnr'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestGpsnr_{name}.pth"))
-    print("[epoch %d Gpsnr: %.4f --- best_epoch %d Best_Gpsnr %.4f]" % (
-        epoch, Gpsnr_val_rgb, record_dict['best_epoch_Gpsnr'], record_dict['best_Gpsnr']))
-
-    # Save the best Spsnr model of validation
-    if Spsnr_val_rgb > record_dict['best_Spsnr']:
-        record_dict['best_Spsnr'] = Spsnr_val_rgb
-        record_dict['best_epoch_Spsnr'] = epoch
-        torch.save({'epoch': epoch,
-                    'state_dict': model_restored.state_dict(),
-                    'optimizer': optimizer.state_dict()
-                    }, os.path.join(model_dir, f"model_bestSpsnr_{name}.pth"))
-    print("[epoch %d Spsnr: %.4f --- best_epoch %d Best_Spsnr %.4f]" % (
-        epoch, Spsnr_val_rgb, record_dict['best_epoch_Spsnr'], record_dict['best_Spsnr']))
-    """ 
-    # Save evey epochs of model
-    torch.save({'epoch': epoch,
-                'state_dict': model_restored.state_dict(),
-                'optimizer': optimizer.state_dict()
-                }, os.path.join(model_dir, f"model_epoch_{epoch}.pth"))
-    """
-
-    writer.add_scalar(f'val/PSNR_{name}', psnr_val_rgb, epoch)
-    writer.add_scalar(f'val/SSIM_{name}', ssim_val_rgb, epoch)
-    writer.add_scalar(f'val/LPIPS_{name}', lpips_val_rgb, epoch)
-    writer.add_scalar(f'val/Score_{name}', score_val_rgb, epoch)
-    writer.add_scalar(f'val/Gpsnr_{name}', Gpsnr_val_rgb, epoch)
-    writer.add_scalar(f'val/Spsnr_{name}', Spsnr_val_rgb, epoch)
-
-def save_to_minio(file_path):
-    minio_helper = MinIOHelper(
-            endpoint='47.95.21.85:9000',
-            access_key='admin',
-            secret_key='admin666',
-            secure=False)
-    def upload():
-        minio_helper.upload_file(file_path)
-        print(f'==> Upload {file_path} to minio successfully!')
-    threading.Thread(target=upload).start()
-
-
 if __name__ == '__main__':
 
+    minio_helper = MinIOHelper(
+            endpoint='objectstorageapi.ap-northeast-1.clawcloudrun.com',
+            access_key='16bqw05c',
+            secret_key='h8zdm5kg6k9kg26z',
+            bucket_name="16bqw05c-mywork",
+            secure=True)
     # Start training!
     print('==> Training start: ')
     best_real_dict = {
@@ -368,12 +223,6 @@ if __name__ == '__main__':
         if 'LIMITED' in config and config['LIMITED']:
             assertLimited()
         epoch_start_time = time.time()
-        epoch_loss = 0
-        epoch_ssim_loss = 0
-        epoch_c1_loss = 0
-        epoch_vgg_loss = 0
-        epoch_freq_loss = 0
-        train_id = 1
 
         model_restored.train()
         for i, data in enumerate(tqdm(train_loader), 0):
@@ -398,17 +247,16 @@ if __name__ == '__main__':
         ## Evaluation (Validation)
 
         if fabric.is_global_zero:
-
-            if epoch % Train['VAL_AFTER_EVERY'] == 0:
-                validate(config, 'REAL', model_restored, real_val_loader, best_real_dict, loss_fn_alex)
-                validate(config, 'SYN', model_restored, syn_val_loader, best_syn_dict, loss_fn_alex)
+            model_restored.eval()
+            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x)[0], real_val_loader, best_real_dict, loss_fn_alex,writer)
+            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x)[0], syn_val_loader, best_syn_dict, loss_fn_alex,writer)
             print("------------------------------------------------------------------")
             print(
                 "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,
                                                                       scheduler.get_lr()[0]))
-            combined_gt_loss1.print_cumulative_loss()
+            combined_gt_loss1.print_cumulative_loss('gt')
             combined_gt_loss1.clear_cumulative_loss()
-            combined_flare_loss1.print_cumulative_loss()
+            combined_flare_loss1.print_cumulative_loss('flare')
             combined_flare_loss1.clear_cumulative_loss()
 
             print("------------------------------------------------------------------")
@@ -419,14 +267,15 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
-            save_to_minio(os.path.join(model_dir, "model_latest.pth"))
-
-            writer.add_scalar('train/loss', epoch_loss, epoch)
-            writer.add_scalar('train/ssim_loss', epoch_ssim_loss, epoch)
-            writer.add_scalar('train/c1_loss', epoch_c1_loss, epoch)
-            writer.add_scalar('train/vgg_loss', epoch_vgg_loss, epoch)
-            writer.add_scalar('train/freq_loss', epoch_freq_loss, epoch)
-            writer.add_scalar('train/lr', scheduler.get_lr()[0], epoch)
+            threading.Thread(target=lambda:minio_helper.upload_file(os.path.join(model_dir, "model_latest.pth"))).start()
+            for best_type in update_real_list:
+                threading.Thread(target=lambda:minio_helper.copy_file_local_remote(
+                    os.path.join(model_dir, "model_latest.pth"),
+                    os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))).start()
+            for best_type in update_syn_list:
+                threading.Thread(target=lambda: minio_helper.copy_file_local_remote(
+                    os.path.join(model_dir, "model_latest.pth"),
+                    os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))).start()
 
         scheduler.step()
     writer.close()

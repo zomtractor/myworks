@@ -101,7 +101,8 @@ class CombinedLoss(nn.Module):
         for name in self.cumulative_loss.keys():
             self.cumulative_loss[name] = 0.0
 
-    def print_cumulative_loss(self):
+    def print_cumulative_loss(self, title='default'):
+        print(f"loss of {title}",end=':')
         """Print cumulative loss values."""
         for name, value in self.cumulative_loss.items():
             print(f"{name}: {value:.4f}", end=',')
@@ -114,6 +115,12 @@ class CombinedLoss(nn.Module):
         for name in self.cumulative_loss.keys():
             self.cumulative_loss[name] += other.cumulative_loss[name]
         return self
+
+    def logging(self, writer,epoch):
+        """Log cumulative loss values to TensorBoard."""
+        for name, value in self.cumulative_loss.items():
+            writer.add_scalar(f'loss/{name}', value,epoch)
+
 
 
 if __name__ == '__main__':

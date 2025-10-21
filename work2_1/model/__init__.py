@@ -12,6 +12,7 @@ from .mffe import *
 from .backbone_my import MyNet
 from .backbone_my2 import MyNet2
 from .backbone_ublock import UBlock
+from .backbone_mock import Mock
 
 # from .layers import *
 # from .backbone_convir import *

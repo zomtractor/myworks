@@ -182,13 +182,6 @@ class MyNet2(nn.Module):
         self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** i, base_channels * 2 ** (i+1)) for i in range(num_block)])
         self.projout = BasicConv(base_channels, 6, kernel_size=1, padding=0, norm=False, relu=False)
-    def scale(self,x, factor):
-        _, _, h, w = x.size()
-        new_h = int(h * factor)
-        new_w = int(w * factor)
-        if(new_h == h) and (new_w == w):
-            return x
-        return F.interpolate(x, size=(new_h, new_w), mode='bilinear', align_corners=False)
 
     def forward(self, x):
         skip = []
