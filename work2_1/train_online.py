@@ -159,6 +159,17 @@ def load_config():
     writer = SummaryWriter(log_dir=log_dir, filename_suffix=f'_{mode}')
     return opt, writer
 
+def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
+    minio_helper.upload_file(os.path.join(model_dir, "model_latest.pth"))
+    for best_type in update_real_list:
+        minio_helper.copy_file_local_remote(
+            os.path.join(model_dir, "model_latest.pth"),
+            os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))
+    for best_type in update_syn_list:
+        minio_helper.copy_file_local_remote(
+            os.path.join(model_dir, "model_latest.pth"),
+            os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))
+
 
 if __name__ == '__main__':
 
@@ -267,15 +278,7 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
-            threading.Thread(target=lambda:minio_helper.upload_file(os.path.join(model_dir, "model_latest.pth"))).start()
-            for best_type in update_real_list:
-                threading.Thread(target=lambda:minio_helper.copy_file_local_remote(
-                    os.path.join(model_dir, "model_latest.pth"),
-                    os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))).start()
-            for best_type in update_syn_list:
-                threading.Thread(target=lambda: minio_helper.copy_file_local_remote(
-                    os.path.join(model_dir, "model_latest.pth"),
-                    os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))).start()
+            threading.Thread(target=minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
 
         scheduler.step()
     writer.close()

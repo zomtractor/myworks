@@ -6,7 +6,7 @@ import torch
 from utils.mask_utils import calculate_metrics
 
 
-def validate(config, epoch, ds_type, fetch_input_fn, val_loader, record_dict, lpips_fn, writer):
+def validate(epoch, config, ds_type, fetch_input_fn, val_loader, record_dict, lpips_fn, writer):
     res=[]
     Train = config['TRAINING']
     val_dir = Train['VAL'][f'{ds_type}_DIR']
