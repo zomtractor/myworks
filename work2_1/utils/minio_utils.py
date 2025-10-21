@@ -10,6 +10,7 @@ import hashlib
 import shutil
 from pathlib import Path
 from minio import Minio
+from minio.commonconfig import CopySource
 from minio.error import S3Error
 import logging
 
@@ -221,7 +222,7 @@ class MinIOHelper:
                 self.client.copy_object(
                     self.bucket_name,
                     target_object_name,
-                    f"{self.bucket_name}/{source_object_name}"
+                    CopySource(self.bucket_name,source_object_name)
                 )
                 logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
@@ -283,7 +284,7 @@ class MinIOHelper:
                     self.client.copy_object(
                         self.bucket_name,
                         target_object_name,
-                        f"{self.bucket_name}/{source_object_name}"
+                        CopySource(self.bucket_name,source_object_name)
                     )
                     logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
@@ -329,7 +330,7 @@ class MinIOHelper:
             self.client.copy_object(
                 self.bucket_name,
                 target_object_name,
-                f"{self.bucket_name}/{source_object_name}"
+                CopySource(self.bucket_name,source_object_name)
             )
 
             logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
@@ -355,7 +356,7 @@ class MinIOHelper:
             self.client.copy_object(
                 self.bucket_name,
                 target_object_name,
-                f"{self.bucket_name}/{source_object_name}"
+                CopySource(self.bucket_name,source_object_name)
             )
             logger.info(f"远程复制完成（服务器端）: {source_object_name} -> {target_object_name}")
 
