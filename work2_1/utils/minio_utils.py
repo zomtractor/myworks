@@ -137,7 +137,7 @@ class MinIOHelper:
             # 下载文件
             self.client.fget_object(
                 self.bucket_name,
-                remote_object_name,
+                remote_object_name.replace('\\', '/'),
                 str(local_path)
             )
 

@@ -1,16 +1,12 @@
-import math
+import datetime
 import os
 import random
-import shutil
 import time
 import warnings
-import datetime
 
-import cv2
 import lpips
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.optim as optim
 import yaml
 from lightning.fabric import Fabric
@@ -23,11 +19,8 @@ import utils
 from data import get_training_data, get_validation_data
 from model import CombinedLoss
 from utils import network_parameters, MinIOHelper
-from utils.mask_utils import calculate_metrics
-from warmup_scheduler import GradualWarmupScheduler
-import threading
-
 from validate import validate
+from warmup_scheduler import GradualWarmupScheduler
 
 
 def assertLimited():
@@ -50,7 +43,13 @@ def init_torch_config(config):
     torch.set_float32_matmul_precision('high')
     # torch.set_anomaly_enabled(True)
     # fabric = Fabric(accelerator="cuda", devices=2, strategy="ddp_find_unused_parameters_true")
-    fabric = Fabric(accelerator="cuda", devices=config['TRAINOPTIM']['DEVICES'])
+    # fabric = Fabric(accelerator="cuda", devices=config['TRAINOPTIM']['DEVICES'])
+    fabric = Fabric(
+        accelerator="cuda",
+        devices=1,
+        num_nodes=2,
+        strategy="ddp",
+    )
     fabric.launch()
     return fabric
 
@@ -242,9 +241,9 @@ if __name__ == '__main__':
             # for param in model_restored.parameters():
             #     param.grad = None
             optimizer.zero_grad()
-            target = data[0].cuda()
-            input_ = data[1].cuda()
-            flare = data[2].cuda()
+            target = fabric.to_device(data[0])
+            input_ = fabric.to_device(data[1])
+            flare = fabric.to_device(data[2])
             restored, flarepred = model_restored(input_)
 
             loss1_gt = combined_gt_loss1(restored, target)
@@ -279,7 +278,7 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
-            threading.Thread(target=lambda:minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
+            # threading.Thread(target=lambda:minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
 
         scheduler.step()
     writer.close()
