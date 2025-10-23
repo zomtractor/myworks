@@ -455,25 +455,16 @@ class MinIOHelper:
             directory_path = self.local_dir
 
         try:
-            directory_path = Path(directory_path).resolve()
-            local_dir_path = Path(self.local_dir).resolve()
-
-            if not directory_path.exists():
+            if not os.path.exists(directory_path):
                 minio_logger.error(f"目录不存在: {directory_path}")
                 return False
 
             uploaded_count = 0
-            for file_path in directory_path.rglob('*'):
-                if file_path.is_file():
-                    # 计算相对路径
-                    if str(directory_path) == str(local_dir_path):
-                        # 如果上传的就是checkpoints目录本身
-                        rel_path = file_path.relative_to(local_dir_path)
-                    else:
-                        # 如果上传的是其他目录，在bucket中创建对应的子目录
-                        rel_path = file_path.relative_to(directory_path.parent)
+            for file_name in os.listdir(directory_path):
+                file_path = f"{directory_path}/{file_name}"
+                if os.path.isfile(file_path):
 
-                    object_name = str(rel_path).replace('\\', '/')
+                    object_name = self._get_relative_object_name(file_path)
 
                     # 上传文件
                     self.client.fput_object(
@@ -483,12 +474,71 @@ class MinIOHelper:
                     )
                     uploaded_count += 1
                     minio_logger.info(f"上传文件: {object_name}")
+                else:
+                    self.upload_directory(f"{directory_path}/{file_path}")
 
             minio_logger.info(f"目录上传完成! 共上传 {uploaded_count} 个文件")
             return True
 
         except S3Error as e:
             minio_logger.error(f"上传目录时出错: {e}")
+            return False
+
+    def download_directory(self, remote_directory, local_path=None):
+        """
+        下载远程目录的所有文件和子文件到本地，如果存在则覆盖
+
+        Args:
+            remote_directory: 远程目录路径（在bucket中的路径）
+            local_path: 本地目标路径，如果为None则自动根据远程目录名称确定
+        """
+        try:
+            # 规范化远程目录路径（确保以/结尾）
+            if not remote_directory.endswith('/'):
+                remote_directory = remote_directory + '/'
+            remote_directory = remote_directory.replace('\\', '/')
+            if local_path is None:
+                # 自动确定本地路径
+                local_path = self._get_local_path_from_object(remote_directory)
+            else:
+                local_path = Path(local_path)
+
+            # 确保本地目录存在
+            local_path.mkdir(parents=True, exist_ok=True)
+
+            # 获取指定目录下的所有对象
+            objects = self.client.list_objects(
+                self.bucket_name,
+                prefix=remote_directory,
+                recursive=True
+            )
+
+            downloaded_count = 0
+            for obj in objects:
+                # 计算相对于远程目录的本地路径
+                relative_path = obj.object_name[len(remote_directory):]
+                if not relative_path:  # 跳过目录本身
+                    continue
+
+                target_local_path = local_path / relative_path
+
+                # 确保本地目录存在
+                target_local_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # 下载文件（自动覆盖）
+                self.client.fget_object(
+                    self.bucket_name,
+                    obj.object_name,
+                    str(target_local_path)
+                )
+                downloaded_count += 1
+                minio_logger.info(f"下载文件: {obj.object_name} -> {target_local_path}")
+
+            minio_logger.info(f"目录下载完成! 共下载 {downloaded_count} 个文件到 {local_path}")
+            return True
+
+        except S3Error as e:
+            minio_logger.error(f"下载目录时出错: {e}")
             return False
 
     def list_bucket_files(self):
@@ -522,7 +572,7 @@ def main():
             secret_key='admin666',
             secure=False
     )
-    minio_helper.download_bucket()
+    minio_helper.download_directory("DeFlare/train_logs")
 
 
 if __name__ == "__main__":

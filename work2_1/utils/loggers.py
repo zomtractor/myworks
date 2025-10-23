@@ -1,6 +1,7 @@
 import logging
 import sys
 import yaml
+from utils import mkdirs
 
 def setup_logger(name, filename, console_level=logging.WARNING):
     """设置logger的通用函数"""
@@ -32,6 +33,8 @@ def setup_logger(name, filename, console_level=logging.WARNING):
 
 with open('config.yaml', 'r') as config:
     opt = yaml.safe_load(config)
+parent = f"{opt['TRAINING']['SAVE_DIR']}/{opt['MODEL']['MODE']}"
+mkdirs(parent)
 # 创建两个logger
-result_logger = setup_logger('result_logger', f"{opt['TRAINING']['SAVE_DIR']}/{opt['MODEL']['MODE']}/result.log.txt")
-minio_logger = setup_logger('minio_logger', f"{opt['TRAINING']['SAVE_DIR']}/{opt['MODEL']['MODE']}/minio.log.txt")
+result_logger = setup_logger('result_logger', f"{parent}/result.log.txt")
+minio_logger = setup_logger('minio_logger', f"{parent}/minio.log.txt")

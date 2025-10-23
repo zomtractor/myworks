@@ -46,9 +46,9 @@ def init_torch_config(config):
     # fabric = Fabric(accelerator="cuda", devices=config['TRAINOPTIM']['DEVICES'])
     fabric = Fabric(
         accelerator="cuda",
-        devices=1,
-        num_nodes=2,
-        strategy="ddp",
+        devices=config['TRAINOPTIM']['DEVICES'],
+        num_nodes=config['TRAINOPTIM']['NUM_NODES'],
+        strategy=config['TRAINOPTIM']['STRATEGY'],
     )
     fabric.launch()
     return fabric
@@ -163,6 +163,7 @@ def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
     # 父目录
     minio_helper.upload_file(os.path.join(os.path.dirname(model_dir), "result.log.txt"))
     minio_helper.upload_file(os.path.join(os.path.dirname(model_dir), "minio.log.txt"))
+    minio_helper.upload_directory(os.path.join(os.path.dirname(model_dir), "train_logs"))
 
 
     for best_type in update_real_list:
@@ -173,7 +174,6 @@ def minio_sync(minio_helper,model_dir,update_real_list,update_syn_list):
         minio_helper.copy_file_local_remote(
             os.path.join(model_dir, "model_latest.pth"),
             os.path.join(model_dir, f"model_best_{best_type}_SYN.pth"))
-
 
 if __name__ == '__main__':
 
@@ -221,8 +221,6 @@ if __name__ == '__main__':
 
     train_loader, real_val_loader, syn_val_loader = get_data_loaders(config, fabric)
     total_start_time = time.time()
-    # gt_path = "./dataset/Flare7Kpp/test_data/real/gt"
-    # gt_path = "./dataset/Flare7Kpp/test_data/real/gt"
 
     Train = config['TRAINING']
     OPT = config['TRAINOPTIM']
