@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+import threading
 import time
 import warnings
 
@@ -276,7 +277,7 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
-            # threading.Thread(target=lambda:minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
+            threading.Thread(target=lambda:minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
 
         scheduler.step()
     writer.close()
