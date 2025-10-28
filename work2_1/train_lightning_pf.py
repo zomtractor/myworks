@@ -115,10 +115,10 @@ def load_model(config, fabric):
                 print('------------------------------------------------------------------')
                 print("==> Resuming Training with learning rate:", new_lr)
                 print('------------------------------------------------------------------')
-        except Exception as e:
+            else:
+                print('No checkpoint found, starting from scratch.')
+        except :
             print('checkpoint load failed, start from scratch.')
-        else:
-            print('No checkpoint found, starting from scratch.')
     # Show the training configuration
     print(f'''==> Training details:
         ------------------------------------------------------------------
