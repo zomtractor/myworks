@@ -15,6 +15,7 @@ import yaml
 from lightning.fabric import Fabric
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import model
 import utils
@@ -358,7 +359,7 @@ if __name__ == '__main__':
         train_id = 1
 
         model_restored.train()
-        for i, data in enumerate(train_loader, 0):
+        for i, data in enumerate(tqdm(train_loader), 0):
             # Forward propagation
             # for param in model_restored.parameters():
             #     param.grad = None
