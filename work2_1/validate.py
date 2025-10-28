@@ -40,7 +40,8 @@ def validate(epoch, config, ds_type, fetch_input_fn, val_loader, record_dict, lp
     # 计算指标
     psnr_val_rgb, ssim_val_rgb, lpips_val_rgb, score_val_rgb, Gpsnr_val_rgb, Spsnr_val_rgb = calculate_metrics(
         gt_path, input_path, mask_path, lpips_fn)
-    assert not (math.fabs(psnr_val_rgb - 10.6835) < 1e-5), "nan or inf in PSNR calculation"
+    assert not (math.fabs(psnr_val_rgb-10.6835)<1e-5), "nan or inf in PSNR calculation"
+    assert not (math.fabs(psnr_val_rgb-22.5612)<1e-6), "input == output in PSNR calculation"
 
     # 定义指标处理逻辑
     metrics = [

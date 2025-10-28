@@ -163,7 +163,7 @@ class MyNet2_2(nn.Module):
         self.ups = nn.ModuleList([UpSample(base_channels * 2 ** (i+1), base_channels * 2 ** i) for i in range(num_block)])
         self.downs = nn.ModuleList([DownSample(base_channels * 2 ** (i), base_channels * 2 ** (i+1)) for i in range(num_block)])
         self.projout = BasicConv(base_channels, 6, kernel_size=1, padding=0, norm=False, relu=False)
-        self.sigmoid = nn.Sigmoid()
+        # self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         skip = []
@@ -184,6 +184,7 @@ class MyNet2_2(nn.Module):
             res = torch.cat((res, skip[-1 - i]), dim=1)
             res = self.dbs_pred[-1 - i](res)
             res = self.out_reduce[-1-i](res)
-        res = self.sigmoid(self.projout(res))
+        # res = self.sigmoid(self.projout(res))
+        res = self.projout(res)
         pred,flare = torch.chunk(res,2,dim=1)
         return pred+x,flare+x
