@@ -6,7 +6,7 @@ from model import BasicConv, FAB, OCAB, MFFE, MDFusion, CBAM
 from .layers import *
 
 class EBlock(nn.Module):
-    def __init__(self, out_channel,  num_res=8, data='ITS'):
+    def __init__(self, out_channel,  num_res=8, data='GTA5'):
         super(EBlock, self).__init__()
 
         layers = [ResBlock(out_channel, out_channel, data) for _ in range(num_res - 1)]
@@ -19,7 +19,7 @@ class EBlock(nn.Module):
 
 
 class DBlock(nn.Module):
-    def __init__(self, channel, num_res=8, data='ITS'):
+    def __init__(self, channel, num_res=8, data='GTA5'):
         super(DBlock, self).__init__()
 
         layers = [ResBlock(channel, channel, data) for _ in range(num_res - 1)]
@@ -30,7 +30,7 @@ class DBlock(nn.Module):
         return self.layers(x)
 
 class BottleNeck(nn.Module):
-    def __init__(self, channel, num_res=8, data='ITS'):
+    def __init__(self, channel, num_res=8, data='GTA5'):
         super(BottleNeck, self).__init__()
         layers = [ResBlock(channel, channel, data) for _ in range(num_res - 1)]
         layers.append(ResBlock(channel, channel, data, filter=True))
