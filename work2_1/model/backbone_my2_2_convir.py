@@ -35,9 +35,8 @@ class BottleNeck(nn.Module):
         layers = [ResBlock(channel, channel, data) for _ in range(num_res - 1)]
         layers.append(ResBlock(channel, channel, data, filter=True))
         self.layers = nn.Sequential(*layers)
-        self.layers = nn.Sequential(*layers)
     def forward(self, x):
-        return self.b(x)
+        return self.layers(x)
 
 class EBlockFlare(nn.Module):
     def __init__(self, channels):
