@@ -15,6 +15,7 @@ from .backbone_my2_1 import MyNet2_1
 from .backbone_my2_2 import MyNet2_2
 from .backbone_ublock import UBlock
 from .backbone_mock import Mock
+from .backbone_my2_2_convir import MyNet2_2_ConvIR
 
 # from .layers import *
 # from .backbone_convir import *
