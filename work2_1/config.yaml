@@ -12,8 +12,8 @@ MODEL:
 #  ARGS:
 #    in_channels: 3
 #    base_channels: 20
-  MODE: 'DeFlare'
-  ARCH: 'MyNet2'
+  MODE: 'net2convir'
+  ARCH: 'MyNet2_2_ConvIR'
   ARGS:
 #    in_channels: 3
     base_channels: 16
@@ -27,7 +27,7 @@ TRAINOPTIM:
   LR_INITIAL: 1e-4 #origin: 2e-4
   LR_MIN: 1e-6 # origin: 1e-6
   # BETA1: 0.9
-  NUM_NODES: 2      #
+  NUM_NODES: 1      #
   STRATEGY: "ddp"   #
 
 DATASET:
