@@ -167,7 +167,7 @@ class MyNet2_2(nn.Module):
 
     def forward(self, x):
         skip = []
-        gauss, laplacian = GTB(x, layer=3)
+        gauss, laplacian = GTB(x, layer=self.num_block)
         res = self.proj_in(x)
 
         for i in range(0, self.num_block):
