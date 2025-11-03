@@ -12,8 +12,8 @@ MODEL:
 #  ARGS:
 #    in_channels: 3
 #    base_channels: 20
-  MODE: 'net2_noconcat'
-  ARCH: 'MyNet2_3'
+  MODE: 'net2_reducechannels'
+  ARCH: 'MyNet2_4'
   ARGS:
 #    in_channels: 3
     base_channels: 16
