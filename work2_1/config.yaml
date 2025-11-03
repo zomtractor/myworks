@@ -17,7 +17,7 @@ MODEL:
   ARGS:
 #    in_channels: 3
     base_channels: 16
-    num_blocks: 4
+    num_block: 4
 
 # Optimization arguments.
 TRAINOPTIM:
