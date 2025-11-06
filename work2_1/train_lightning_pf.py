@@ -330,9 +330,12 @@ if __name__ == '__main__':
     model_restored, checkpoint, optimizer, scheduler, start_epoch = load_model(config, fabric)
 
     if checkpoint is not None:
-        best_real_dict = checkpoint['best_real_dict']
-        best_syn_dict = checkpoint['best_syn_dict']
-        print("load indices from checkpoint succeed.")
+        try:
+            best_real_dict = checkpoint['best_real_dict']
+            best_syn_dict = checkpoint['best_syn_dict']
+            print("load indices from checkpoint succeed.")
+        except :
+            print('checkpoint exists but index load failed')
     else:
         print('No checkpoint found, starting from scratch.')
 
