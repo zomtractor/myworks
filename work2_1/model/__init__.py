@@ -18,6 +18,7 @@ from .backbone_mock import Mock
 from .backbone_my2_2_convir import MyNet2_2_ConvIR
 from .backbone_my2_3 import MyNet2_3
 from .backbone_my2_4 import MyNet2_4
+from .backbone_my2_2_p import MyNet2_2_p
 
 # from .layers import *
 # from .backbone_convir import *

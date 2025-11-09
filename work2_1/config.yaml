@@ -12,12 +12,12 @@ MODEL:
 #  ARGS:
 #    in_channels: 3
 #    base_channels: 20
-  MODE: 'net2_reducechannels'
-  ARCH: 'MyNet2_4'
+  MODE: 'net2_p'
+  ARCH: 'MyNet2_2_p'
   ARGS:
 #    in_channels: 3
     base_channels: 16
-    num_block: 4
+    num_block: 3
 
 # Optimization arguments.
 TRAINOPTIM:
@@ -32,7 +32,7 @@ TRAINOPTIM:
   STRATEGY: "ddp"   #
 
 DATASET:
-  LENGTH: 1600 # origin: 8192
+  LENGTH: 16384 # origin: 8192
   MODE: 'Flare7Kpp'  # 'local','Flare7K','Flare7Kpp'
   LOCAL_DIR: './dataset/flare7k_local' # path to local dataset
   BACKGROUND_DIR: './dataset/Flickr24K' # path to background image
