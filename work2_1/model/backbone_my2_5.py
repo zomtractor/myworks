@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from model import BasicConv, FAB, OCAB, MFFE, MDFusion, CBAM
-from .layers import *
 
 class FeatureBlock(nn.Module):
     def calculate_rpi_oca(self):
@@ -146,9 +145,9 @@ class UpSample(nn.Module):
         return x
 
 
-class MyNet2_2(nn.Module):
+class MyNet2_5(nn.Module):
     def __init__(self, base_channels=16, num_block=3, num_bottleneck=2):
-        super(MyNet2_2, self).__init__()
+        super(MyNet2_5, self).__init__()
         self.num_block = num_block
         self.num_bottleneck = num_bottleneck
         self.proj_in = BasicConv(3, base_channels, kernel_size=3, padding=1)

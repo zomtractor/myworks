@@ -5,6 +5,7 @@ import torch.nn as nn
 import yaml
 from focal_frequency_loss import FocalFrequencyLoss as FFL
 from pytorch_msssim import ssim
+import torch.nn.functional as F
 
 
 # ========== L1 Charbonnier Loss ==========
@@ -13,7 +14,7 @@ class L1CharbonnierLoss(nn.Module):
         super(L1CharbonnierLoss, self).__init__()
         self.eps = eps
 
-    def forward(self, x, y):
+    def forward(self, x, y, **args):
         return torch.mean(torch.sqrt((x - y) ** 2 + self.eps))
 
 
@@ -28,7 +29,7 @@ class SSIMLoss(nn.Module):
     def __init__(self):
         super(SSIMLoss, self).__init__()
 
-    def forward(self, x, y):
+    def forward(self, x, y, **args):
         return 1 - ssim(x, y, data_range=1.0, size_average=True)
 
 # ========== Color Consistency Loss ==========
@@ -58,8 +59,96 @@ class LPIPSLoss(nn.Module):
         for param in self.vgg.parameters():
             param.requires_grad = False
 
-    def forward(self, pred, target):
+    def forward(self, pred, target, **args):
         return self.vgg(pred * 2 - 1, target * 2 - 1).mean()
+
+def gaussian_2d(shape, center, sigma):
+    """
+    shape: (H, W)
+    center: (cy, cx) floats (in pixels)
+    sigma: float (pixels)
+    returns: (H, W) gaussian map, sum normalized to 1 (or not, choose later)
+    """
+    H, W = shape
+    ys = torch.arange(0, H, dtype=torch.float32, device=center.device)
+    xs = torch.arange(0, W, dtype=torch.float32, device=center.device)
+    yy = ys.view(H, 1)
+    xx = xs.view(1, W)
+    cy, cx = center
+    gauss = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * (sigma ** 2 + 1e-8)))
+    return gauss
+
+def normalize_map(m):
+    s = m.sum(dim=[-2, -1], keepdim=True)
+    return m / (s + 1e-6)
+
+
+class LightConsistencyLoss(nn.Module):
+    """
+    Compare predicted light distribution (from heat * sigma) to GT light mask (or GT gaussian).
+    Accepts:
+      - pred_heat: (B,1,H,W)
+      - pred_sigma: (B,1,H,W)
+      - gt_mask: (B,1,H,W) binary mask or soft mask
+    Produces scalar loss.
+    """
+    def __init__(self, reduction='mean', alpha_center=1.0, alpha_map=1.0):
+        super().__init__()
+        self.reduction = reduction
+        self.alpha_center = alpha_center
+        self.alpha_map = alpha_map
+
+    def forward(self, pred_heat, pred_sigma, gt_mask):
+        B, _, H, W = pred_heat.shape
+        device = pred_heat.device
+
+        # 1) Fit GT center & sigma (moment-based)
+        # compute gt centroid (normalized to pixels)
+        gt_sum = (gt_mask + 1e-8).sum(dim=[-2, -1])  # (B,1)
+        ys = torch.arange(0, H, dtype=torch.float32, device=device).view(1,1,H,1)
+        xs = torch.arange(0, W, dtype=torch.float32, device=device).view(1,1,1,W)
+        cy = (gt_mask * ys).sum(dim=[-2,-1]) / gt_sum  # (B,1)
+        cx = (gt_mask * xs).sum(dim=[-2,-1]) / gt_sum  # (B,1)
+        # gt_sigma: second moment
+        ys2 = (ys - cy.view(B,1,1,1))**2
+        xs2 = (xs - cx.view(B,1,1,1))**2
+        gt_var = (gt_mask * (ys2 + xs2)).sum(dim=[-2,-1]) / gt_sum   # (B,1)
+        gt_sigma = torch.sqrt(gt_var + 1e-6).view(B,1)               # (B,1)
+
+        # 2) Predicted center: compute centroid from pred_heat
+        ph_sum = (pred_heat + 1e-8).sum(dim=[-2, -1])
+        pcy = (pred_heat * ys).sum(dim=[-2,-1]) / ph_sum
+        pcx = (pred_heat * xs).sum(dim=[-2,-1]) / ph_sum
+        # predicted sigma: average over heat-weighted sigma_map
+        psigma = (pred_sigma * pred_heat).sum(dim=[-2,-1]) / ph_sum
+        psigma = psigma.view(B,1)
+
+        # 3) center loss (pixel distance)
+        center_dist = torch.sqrt((pcy - cy).pow(2) + (pcx - cx).pow(2)).view(B)
+        center_loss = center_dist.mean()
+
+        # 4) map loss: build gaussian maps from predicted center and sigma & compare to gt gaussian (from gt_mask)
+        pred_gauss_maps = []
+        gt_gauss_maps = []
+        for b in range(B):
+            cy_b = pcy[b,0]
+            cx_b = pcx[b,0]
+            sig_b = psigma[b,0].clamp(min=1.0)   # avoid zero
+            pg = gaussian_2d((H, W), torch.tensor([cy_b, cx_b], device=device), sig_b)
+            pg = pg / (pg.sum() + 1e-9)
+            pred_gauss_maps.append(pg)
+            # GT gaussian: approximate from GT centroid and sigma
+            gcy = cy[b,0]; gcx = cx[b,0]; gs = gt_sigma[b,0].clamp(min=1.0)
+            gg = gaussian_2d((H, W), torch.tensor([gcy, gcx], device=device), gs)
+            gg = gg / (gg.sum() + 1e-9)
+            gt_gauss_maps.append(gg)
+        pred_gauss = torch.stack(pred_gauss_maps, dim=0).unsqueeze(1)  # (B,1,H,W)
+        gt_gauss = torch.stack(gt_gauss_maps, dim=0).unsqueeze(1)
+
+        map_loss = F.l1_loss(pred_gauss, gt_gauss, reduction=self.reduction)
+
+        loss = self.alpha_center * center_loss + self.alpha_map * map_loss
+        return loss, {'center_loss': center_loss.item(), 'map_loss': map_loss.item()}
 
 
 
@@ -87,10 +176,10 @@ class CombinedLoss(nn.Module):
             self.losses[loss_name] = loss_class(**loss_cfg)
             print(f'Initialized {loss_name} with weight {weight}')
 
-    def forward(self, input, target):
+    def forward(self, input, target, **args):
         total_loss = 0.0
         for name, loss_fn in self.losses.items():
-            loss_val = loss_fn(input, target)
+            loss_val = loss_fn(input, target,args)
             total_loss += self.weights[name] * loss_val
             self.cumulative_loss[name] += loss_val.item()
         self.cumulative_loss['total'] += total_loss.item()

@@ -126,11 +126,12 @@ class RealtimeDataLoaderTrain(Dataset):
         is_real = random.random() < self.real_threshold
         with_reflective = random.random() < self.reflective_threshold
         result_dict = self.loader.getI(index, is_real=is_real, with_reflective=with_reflective)
-        gt,lq,flare = result_dict['gt'],result_dict['lq'],result_dict['flare']
+        gt,lq,flare,light = result_dict['gt'],result_dict['lq'],result_dict['flare'],result_dict['light']
         gt=self.resize(gt)
         lq=self.resize(lq)
         flare=self.resize(flare)
-        return gt,lq,flare
+        light = self.resize(light)
+        return gt,lq,flare,light
 
 class DataLoaderTrain(Dataset):
     def __init__(self, rgb_dir, img_options=None,length=None):
