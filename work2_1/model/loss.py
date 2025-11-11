@@ -14,7 +14,7 @@ class L1CharbonnierLoss(nn.Module):
         super(L1CharbonnierLoss, self).__init__()
         self.eps = eps
 
-    def forward(self, x, y, **args):
+    def forward(self, x, y, *args):
         return torch.mean(torch.sqrt((x - y) ** 2 + self.eps))
 
 
@@ -23,13 +23,16 @@ class FocalFrequencyLoss(FFL):
     def __init__(self, loss_weight=1.0, alpha=1.0):
         super(FocalFrequencyLoss, self).__init__(loss_weight=loss_weight, alpha=alpha)
 
+    def forward(self, x, y, *args):
+        return super(FocalFrequencyLoss, self).forward(x, y)
+
 
 # ========== SSIM Loss ==========
 class SSIMLoss(nn.Module):
     def __init__(self):
         super(SSIMLoss, self).__init__()
 
-    def forward(self, x, y, **args):
+    def forward(self, x, y, *args):
         return 1 - ssim(x, y, data_range=1.0, size_average=True)
 
 # ========== Color Consistency Loss ==========
@@ -59,7 +62,7 @@ class LPIPSLoss(nn.Module):
         for param in self.vgg.parameters():
             param.requires_grad = False
 
-    def forward(self, pred, target, **args):
+    def forward(self, pred, target, *args):
         return self.vgg(pred * 2 - 1, target * 2 - 1).mean()
 
 def gaussian_2d(shape, center, sigma):
@@ -176,7 +179,7 @@ class CombinedLoss(nn.Module):
             self.losses[loss_name] = loss_class(**loss_cfg)
             print(f'Initialized {loss_name} with weight {weight}')
 
-    def forward(self, input, target, **args):
+    def forward(self, input, target, *args):
         total_loss = 0.0
         for name, loss_fn in self.losses.items():
             loss_val = loss_fn(input, target,args)
