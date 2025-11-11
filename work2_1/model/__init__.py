@@ -20,6 +20,7 @@ from .backbone_my2_3 import MyNet2_3
 from .backbone_my2_4 import MyNet2_4
 from .backbone_my2_2_p import MyNet2_2_p
 from .backbone_my2_5 import MyNet2_5
+from .backbone_smfr import SMFRNet
 
 # from .layers import *
 # from .backbone_convir import *

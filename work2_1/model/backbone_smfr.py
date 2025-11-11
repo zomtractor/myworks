@@ -103,23 +103,30 @@ class FDM(nn.Module):
         return dist.unsqueeze(0).unsqueeze(0)
 
     def forward(self, x):
-        B,C,H,W = x.shape
-        Xf = torch.fft.rfft2(x, dim=(-2,-1), norm='ortho')
+        # ---- FDM.forward() 核心替换部分 ----
+        B, C, H, W = x.shape
+        Xf = torch.fft.rfft2(x, dim=(-2, -1), norm='ortho')
         M = torch.abs(Xf)
         phase = torch.angle(Xf)
-        gap = M.mean(dim=[2,3], keepdim=True)
+
+        gap = M.mean(dim=[2, 3], keepdim=True)
         w = self.sigmoid(self.channel_conv(gap))
         M_hat = M * w
         M_processed = self.mlp(M_hat)
-        Dfreq = self._make_distance_map(H, W, x.device, x.dtype)  # 1,1,H,W
-        Wfreq = self.fdam(Dfreq)  # 1,1,H,W
-        Wfreq_bc = Wfreq.expand(B, -1, -1, -1)  # B,1,H,W
-        Wfreq_bc = Wfreq_bc.repeat(1, C, 1, 1)   # B,C,H,W
+
+        # 调整FDAM距离图大小
+        Dfreq = self._make_distance_map(H, W // 2 + 1, x.device, x.dtype)
+        Wfreq = self.fdam(Dfreq)
+        Wfreq_bc = Wfreq.expand(B, -1, -1, -1).repeat(1, C, 1, 1)
+
         M_out = M_processed * (1.0 + self.gamma * Wfreq_bc)
         complex_spec = M_out * torch.exp(1j * phase)
-        x_freq = torch.fft.irfft2(complex_spec, dim=(-2,-1), norm='ortho').real
+
+        # 逆变换
+        x_freq = torch.fft.irfft2(complex_spec, s=(H, W), dim=(-2, -1), norm='ortho')
         gate = torch.sigmoid(self.alpha)
         x_out = gate * x_freq + (1.0 - gate) * x
+
         return x_out
 
 # ------------------ SMEBlock (encoder block) ------------------
@@ -133,8 +140,8 @@ class SMEBlock(nn.Module):
             nn.Conv2d(channels, channels, kernel_size=1, bias=True),
             MGDC(channels, groups=groups),
             SimpleGate(),
-            CSAM(channels),
-            nn.Conv2d(channels, channels, kernel_size=1, bias=True)
+            CSAM(channels//2),
+            nn.Conv2d(channels//2, channels, kernel_size=1, bias=True)
         )
 
         self.beta = nn.Parameter(torch.tensor(1.0))
@@ -159,14 +166,14 @@ class SMDBlock(nn.Module):
             nn.Conv2d(channels, channels, kernel_size=1, bias=True),
             MGDC(channels, groups=groups),
             SimpleGate(),
-            SCA(channels),
-            nn.Conv2d(channels, channels, kernel_size=1, bias=True)
+            SCA(channels//2),
+            nn.Conv2d(channels//2, channels, kernel_size=1, bias=True)
         )
         self.ln2 = LayerNorm(channels)
         self.ffn = nn.Sequential(
             nn.Conv2d(channels, channels, kernel_size=1, bias=True),
             SimpleGate(),
-            nn.Conv2d(channels//2 if channels%2==0 else (channels+1)//2, channels, kernel_size=1, bias=True)
+            nn.Conv2d(channels//2, channels, kernel_size=1, bias=True)
         )
         self.beta = nn.Parameter(torch.tensor(1.0))
         self.lam = nn.Parameter(torch.tensor(1.0))
@@ -198,7 +205,7 @@ class UpsamplePixelShuffle(nn.Module):
         return self.ps(self.conv(x))
 
 class SMFRNet(nn.Module):
-    def __init__(self, in_ch=3, base_ch=64, encoder_blocks=(1,2,3), decoder_blocks=(3,1,1), groups=4):
+    def __init__(self, in_ch=3, base_ch=16, encoder_blocks=(1,2,3), decoder_blocks=(3,1,1), groups=4):
         super().__init__()
         self.input_conv = nn.Conv2d(in_ch, base_ch, kernel_size=3, padding=1, bias=True)
         self.enc_blocks = nn.ModuleList()
@@ -207,9 +214,8 @@ class SMFRNet(nn.Module):
         for idx, num in enumerate(encoder_blocks):
             blocks = nn.Sequential(*[SMEBlock(ch, groups=groups) for _ in range(num)])
             self.enc_blocks.append(blocks)
-            if idx < len(encoder_blocks)-1:
-                self.downs.append(Downsample(ch, ch*2))
-                ch = ch*2
+            self.downs.append(Downsample(ch, ch*2))
+            ch = ch*2
         self.bottleneck = SMEBlock(ch, groups=groups)
         self.ups = nn.ModuleList()
         self.dec_blocks = nn.ModuleList()
@@ -227,14 +233,11 @@ class SMFRNet(nn.Module):
         for i, blocks in enumerate(self.enc_blocks):
             out = blocks(out)
             enc_feats.append(out)
-            if i < len(self.downs):
-                out = self.downs[i](out)
+            out = self.downs[i](out)
         out = self.bottleneck(out)
         for i, (up, dec) in enumerate(zip(self.ups, self.dec_blocks)):
             out = up(out)
             skip = enc_feats[-(i+1)]
-            if out.shape[2:] != skip.shape[2:]:
-                skip = F.interpolate(skip, size=out.shape[2:], mode='bilinear', align_corners=False)
             out = out + skip
             out = dec(out)
         res = self.output_conv(out)
