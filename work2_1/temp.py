@@ -1,7 +1,6 @@
 import torch
 
 from model import MyNet2_4
-from torchsummary import summary
 
 from utils import MinIOHelper
 import os

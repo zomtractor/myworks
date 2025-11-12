@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import yaml
 from focal_frequency_loss import FocalFrequencyLoss as FFL
-from pytorch_msssim import ssim
+from pytorch_msssim import ms_ssim
 import torch.nn.functional as F
 
 
@@ -33,7 +33,7 @@ class SSIMLoss(nn.Module):
         super(SSIMLoss, self).__init__()
 
     def forward(self, x, y, *args):
-        return 1 - ssim(x, y, data_range=1.0, size_average=True)
+        return 1 - ms_ssim(x, y, data_range=1.0, size_average=True)
 
 # ========== Color Consistency Loss ==========
 class ColorConsistencyLoss(nn.Module):

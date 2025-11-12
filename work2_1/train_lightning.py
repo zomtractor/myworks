@@ -37,7 +37,7 @@ def init_torch_config(config):
     torch.set_float32_matmul_precision('high')
     #torch.set_anomaly_enabled(True)
     # fabric = Fabric(accelerator="cuda", devices=2, strategy="ddp_find_unused_parameters_true")
-    fabric = Fabric(accelerator="cuda",devices=config['TRAINOPTIM']['DEVICES'],strategy="ddp_find_unused_parameters_true")
+    fabric = Fabric(accelerator="cuda",devices=config['TRAINOPTIM']['DEVICES'])
     fabric.launch()
     return fabric
 

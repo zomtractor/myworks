@@ -241,7 +241,7 @@ class SMFRNet(nn.Module):
             out = out + skip
             out = dec(out)
         res = self.output_conv(out)
-        return res
+        return x+res
 
 # ------------------ Composite loss wrapper ------------------
 class CompositeLoss(nn.Module):
