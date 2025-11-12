@@ -105,7 +105,7 @@ class FDM(nn.Module):
     def forward(self, x):
         # ---- FDM.forward() 核心替换部分 ----
         B, C, H, W = x.shape
-        Xf = torch.fft.rfft2(x, dim=(-2, -1), norm='ortho')
+        Xf = torch.fft.fftshift(torch.fft.rfft2(x, dim=(-2, -1), norm='ortho'))
         M = torch.abs(Xf)
         phase = torch.angle(Xf)
 
@@ -123,7 +123,7 @@ class FDM(nn.Module):
         complex_spec = M_out * torch.exp(1j * phase)
 
         # 逆变换
-        x_freq = torch.fft.irfft2(complex_spec, s=(H, W), dim=(-2, -1), norm='ortho')
+        x_freq = torch.fft.irfft2(torch.fft.ifftshift(complex_spec), s=(H, W), dim=(-2, -1), norm='ortho')
         gate = torch.sigmoid(self.alpha)
         x_out = gate * x_freq + (1.0 - gate) * x
 

@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from model import BasicConv, FAB, OCAB, MFFE, MDFusion, CBAM
-from .layers import *
 
 class FeatureBlock(nn.Module):
     def calculate_rpi_oca(self):
