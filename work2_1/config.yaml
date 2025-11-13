@@ -35,7 +35,7 @@ TRAINOPTIM:
 #  STRATEGY: "ddp"   #
 
 DATASET:
-  LENGTH: 64 # origin: 8192
+  LENGTH: 16384 # origin: 8192
   MODE: 'Flare7Kpp'  # 'local','Flare7K','Flare7Kpp'
   LOCAL_DIR: './dataset/flare7k_local' # path to local dataset
   BACKGROUND_DIR: './dataset/Flickr24K' # path to background image
