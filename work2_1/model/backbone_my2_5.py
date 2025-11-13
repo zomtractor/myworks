@@ -265,15 +265,15 @@ class MyNet2_5(nn.Module):
             res = torch.cat((res, skip[-1 - i]), dim=1)
             res = self.reduce[-1-i](res)
             res = self.dbs_pred[-1 - i](res)
-            
+
         # res = self.sigmoid(self.projout(res))
 
         pred = self.projout(res)
 
         # 光源调整模块（高分辨率修正）
-        out, light_map, alpha, params = self.lam(res, pred)
+        out, light_map, alpha, params = self.lam(res, x+pred)
 
-        return x + out, light_map, alpha, params
+        return out, light_map, alpha, params
 
     def getFeatureMaps(self, x):
         features = {}

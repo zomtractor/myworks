@@ -12,27 +12,30 @@ MODEL:
 #  ARGS:
 #    in_channels: 3
 #    base_channels: 20
-  MODE: 'net2_p'
-  ARCH: 'MyNet2_2_p'
+#  MODE: 'smfrnet'
+#  ARCH: 'SMFRNet'
+#  ARGS:
+##    in_channels: 3
+#    base_ch: 64
+  MODE: 'light'
+  ARCH: 'MyNet2_5'
   ARGS:
-#    in_channels: 3
     base_channels: 16
-    num_block: 3
-
 # Optimization arguments.
 TRAINOPTIM:
   BATCH: 8 # origin: 2
   EPOCHS: 300
+  SEED: 1234
   DEVICES: 1
   # NEPOCH_DECAY: [10]
   LR_INITIAL: 1e-4 #origin: 2e-4
   LR_MIN: 1e-6 # origin: 1e-6
   # BETA1: 0.9
   NUM_NODES: 1      #
-  STRATEGY: "ddp"   #
+#  STRATEGY: "ddp"   #
 
 DATASET:
-  LENGTH: 16384 # origin: 8192
+  LENGTH: 64 # origin: 8192
   MODE: 'Flare7Kpp'  # 'local','Flare7K','Flare7Kpp'
   LOCAL_DIR: './dataset/flare7k_local' # path to local dataset
   BACKGROUND_DIR: './dataset/Flickr24K' # path to background image
@@ -48,17 +51,20 @@ TRAINING:
   LOSS:
     L1CharbonnierLoss:
       eps: !!float 1e-6
-      loss_weight: 1.0
-    FocalFrequencyLoss:
-      alpha: 1.0
-      loss_weight: 1.5
+      loss_weight: 0.5
+#    FocalFrequencyLoss:
+#      alpha: 1.0
+#      loss_weight: 1.5
     SSIMLoss:
-      loss_weight: 1.0
+      loss_weight: 0.2
 #    ColorConsistencyLoss:
 #      loss_weight: !!float 1e-4
     LPIPSLoss:
       net: 'vgg'
-      loss_weight: 0.02
+      loss_weight: 0.5
+  LOSSLIGHT:
+    ParamAwareLightLoss:
+      loss_weight: 0.5
 
   VAL:
     REAL_DIR: './dataset/Flare7Kpp/test_data/real'

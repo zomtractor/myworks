@@ -18,7 +18,7 @@ from tqdm import tqdm
 import model
 import utils
 from data import get_training_data, get_validation_data
-from model import CombinedLoss
+from model import CombinedLoss, ParamAwareLightLoss
 from utils import network_parameters, MinIOHelper
 from validate import validate
 from warmup_scheduler import GradualWarmupScheduler
@@ -35,7 +35,7 @@ def init_torch_config(config):
     warnings.filterwarnings("ignore")
     # torch.set_float32_matmul_precision('high')
     ## Set Seeds
-    my_seed = 1234
+    my_seed = config['TRAINOPTIM']['SEED']
     torch.backends.cudnn.benchmark = True
     random.seed(my_seed)
     np.random.seed(my_seed)
@@ -49,7 +49,7 @@ def init_torch_config(config):
         accelerator="cuda",
         devices=config['TRAINOPTIM']['DEVICES'],
         num_nodes=config['TRAINOPTIM']['NUM_NODES'],
-        strategy=config['TRAINOPTIM']['STRATEGY'],
+        # strategy=config['TRAINOPTIM']['STRATEGY'],
     )
     fabric.launch()
     return fabric
@@ -227,6 +227,7 @@ if __name__ == '__main__':
     OPT = config['TRAINOPTIM']
     model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
     combined_gt_loss1 = CombinedLoss(Train['LOSS']).cuda()
+    combined_light_loss1 = CombinedLoss(Train['LOSSLIGHT']).cuda()
     loss_fn_alex = lpips.LPIPS(net='alex').cuda()
     for epoch in range(start_epoch, OPT['EPOCHS'] + 1):
         if 'LIMITED' in config and config['LIMITED']:
@@ -243,10 +244,11 @@ if __name__ == '__main__':
             input_ = fabric.to_device(data[1])
             # flare = fabric.to_device(data[2])
             light = fabric.to_device(data[3])
-            restored = model_restored(input_)
-
+            restored, predlight, alpha, params = model_restored(input_)
             loss1_gt = combined_gt_loss1(restored, target)
-            loss = loss1_gt
+            loss1_light = combined_light_loss1(predlight, light,alpha,params)
+
+            loss = loss1_gt+loss1_light
             fabric.backward(loss)
             optimizer.step()
             if i % 500 == 499:
@@ -255,8 +257,8 @@ if __name__ == '__main__':
 
         if fabric.is_global_zero:
             model_restored.eval()
-            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x), real_val_loader, best_real_dict, loss_fn_alex,writer)
-            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x), syn_val_loader, best_syn_dict, loss_fn_alex,writer)
+            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x)[0], real_val_loader, best_real_dict, loss_fn_alex,writer)
+            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x)[0], syn_val_loader, best_syn_dict, loss_fn_alex,writer)
             print("------------------------------------------------------------------")
             print(
                 "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,

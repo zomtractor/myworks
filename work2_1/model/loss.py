@@ -153,6 +153,61 @@ class LightConsistencyLoss(nn.Module):
         loss = self.alpha_center * center_loss + self.alpha_map * map_loss
         return loss, {'center_loss': center_loss.item(), 'map_loss': map_loss.item()}
 
+class ParamAwareLightLoss(nn.Module):
+    def __init__(self, w_recon=1.0, w_alpha=0.5, w_param=0.5):
+        super().__init__()
+        self.w_recon = w_recon
+        self.w_alpha = w_alpha
+        self.w_param = w_param
+
+    def forward(self, light_map, gt_light, alpha, params):
+        B, _, H, W = light_map.shape
+        gt_gray = (0.2989 * gt_light[:,0,:,:] + 0.5870 * gt_light[:,1,:,:] + 0.1140 * gt_light[:,2,:,:]).unsqueeze(1)
+
+        # === (1) Light reconstruction ===
+        l1 = torch.mean(torch.abs(light_map - gt_light))
+        L_light_recon = l1
+
+        # === (2) Alpha mask consistency ===
+        gt_norm = torch.norm(gt_gray, dim=1, keepdim=True)
+        L_alpha = torch.mean(torch.abs(alpha - gt_norm))
+
+        # === (3) Explicit param-level losses ===
+        x_pred, y_pred = params[..., 0], params[..., 1]
+        a_pred, b_pred = params[..., 2], params[..., 3]
+        intensity_pred = params[..., 5]
+        falloff_pred = params[..., 10]
+
+        # 光源中心 from gt
+        with torch.no_grad():
+            gt_center = self._center_of_mass(gt_norm)
+            gt_area = (gt_norm > 0.3).float().mean(dim=[2,3])
+            gt_intensity = gt_gray.mean(dim=[2,3])
+
+        L_center = F.l1_loss(x_pred.mean(-1), gt_center[..., 0]) + F.l1_loss(y_pred.mean(-1), gt_center[..., 1])
+        A_pred = torch.pi * a_pred.mean(-1) * b_pred.mean(-1)
+        L_size = F.l1_loss(torch.log(A_pred + 1e-6), torch.log(gt_area + 1e-6))
+        L_intensity = F.l1_loss(intensity_pred.mean(-1), gt_intensity)
+
+        L_param_struct = L_center + 0.3 * L_size + 0.2 * L_intensity
+
+        L_total = (
+            self.w_recon * L_light_recon +
+            self.w_alpha * L_alpha +
+            self.w_param * L_param_struct
+        )
+
+        return L_total
+
+    def _center_of_mass(self, mask):
+        B, _, H, W = mask.shape
+        y, x = torch.meshgrid(torch.arange(H), torch.arange(W), indexing="ij")
+        x = x.to(mask.device).float() / W
+        y = y.to(mask.device).float() / H
+        weight = mask / (mask.sum(dim=[2,3], keepdim=True) + 1e-6)
+        cx = (weight * x).sum(dim=[2,3])
+        cy = (weight * y).sum(dim=[2,3])
+        return torch.stack([cx, cy], dim=-1)
 
 
 # ========== 综合损失 ==========
@@ -182,7 +237,7 @@ class CombinedLoss(nn.Module):
     def forward(self, input, target, *args):
         total_loss = 0.0
         for name, loss_fn in self.losses.items():
-            loss_val = loss_fn(input, target,args)
+            loss_val = loss_fn(input, target,*args)
             total_loss += self.weights[name] * loss_val
             self.cumulative_loss[name] += loss_val.item()
         self.cumulative_loss['total'] += total_loss.item()

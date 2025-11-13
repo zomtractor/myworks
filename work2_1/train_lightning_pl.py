@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+import shutil
 import threading
 import time
 import warnings
@@ -18,7 +19,7 @@ from tqdm import tqdm
 import model
 import utils
 from data import get_training_data, get_validation_data
-from model import CombinedLoss
+from model import CombinedLoss, ParamAwareLightLoss
 from utils import network_parameters, MinIOHelper
 from validate import validate
 from warmup_scheduler import GradualWarmupScheduler
@@ -49,11 +50,21 @@ def init_torch_config(config):
         accelerator="cuda",
         devices=config['TRAINOPTIM']['DEVICES'],
         num_nodes=config['TRAINOPTIM']['NUM_NODES'],
-        strategy=config['TRAINOPTIM']['STRATEGY'],
+        # strategy=config['TRAINOPTIM']['STRATEGY'],
     )
     fabric.launch()
     return fabric
 
+def local_sync(minio_helper,model_dir,update_real_list,update_syn_list):
+
+    for best_type in update_real_list:
+        shutil.copy(
+            os.path.join(model_dir, "model_latest.pth"),
+            os.path.join(model_dir, f"model_best_{best_type}_REAL.pth"))
+    for best_type in update_syn_list:
+        shutil.copy(
+            os.path.join(model_dir, "model_latest.pth"),
+            os.path.join(model_dir, f"model_best_{best_type}_SYN.pth"))
 
 def get_data_loaders(config, fabric):
     Train = config['TRAINING']
@@ -227,6 +238,7 @@ if __name__ == '__main__':
     OPT = config['TRAINOPTIM']
     model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
     combined_gt_loss1 = CombinedLoss(Train['LOSS']).cuda()
+    combined_light_loss1 = CombinedLoss(Train['LOSSLIGHT']).cuda()
     loss_fn_alex = lpips.LPIPS(net='alex').cuda()
     for epoch in range(start_epoch, OPT['EPOCHS'] + 1):
         if 'LIMITED' in config and config['LIMITED']:
@@ -242,12 +254,12 @@ if __name__ == '__main__':
             target = fabric.to_device(data[0])
             input_ = fabric.to_device(data[1])
             # flare = fabric.to_device(data[2])
-            restored = model_restored(input_)
-
+            light = fabric.to_device(data[3])
+            restored, predlight, alpha, params = model_restored(input_)
             loss1_gt = combined_gt_loss1(restored, target)
-            loss = loss1_gt
-            # Back propagation
-            # loss.backward()
+            loss1_light = combined_light_loss1(predlight, light,alpha,params)
+
+            loss = loss1_gt+loss1_light
             fabric.backward(loss)
             optimizer.step()
             if i % 500 == 499:
@@ -256,8 +268,8 @@ if __name__ == '__main__':
 
         if fabric.is_global_zero:
             model_restored.eval()
-            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x), real_val_loader, best_real_dict, loss_fn_alex,writer)
-            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x), syn_val_loader, best_syn_dict, loss_fn_alex,writer)
+            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x)[0], real_val_loader, best_real_dict, loss_fn_alex,writer)
+            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x)[0], syn_val_loader, best_syn_dict, loss_fn_alex,writer)
             print("------------------------------------------------------------------")
             print(
                 "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,
@@ -273,8 +285,8 @@ if __name__ == '__main__':
                         'best_real_dict': best_real_dict,
                         'best_syn_dict': best_syn_dict,
                         }, os.path.join(model_dir, "model_latest.pth"))
-            threading.Thread(target=lambda:minio_sync(minio_helper,model_dir,update_real_list,update_syn_list)).start()
-
+            threading.Thread(
+                target=lambda: local_sync(minio_helper, model_dir, update_real_list, update_syn_list)).start()
         scheduler.step()
     writer.close()
 
