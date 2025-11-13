@@ -49,7 +49,6 @@ def init_torch_config(config):
         accelerator="cuda",
         devices=config['TRAINOPTIM']['DEVICES'],
         num_nodes=config['TRAINOPTIM']['NUM_NODES'],
-        strategy=config['TRAINOPTIM']['STRATEGY'],
     )
     fabric.launch()
     return fabric
