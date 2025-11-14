@@ -17,8 +17,8 @@ MODEL:
 #  ARGS:
 ##    in_channels: 3
 #    base_ch: 64
-  MODE: 'light'
-  ARCH: 'MyNet2_5'
+  MODE: 'net2_2_p2'
+  ARCH: 'MyNet2_2_p'
   ARGS:
     base_channels: 16
 # Optimization arguments.

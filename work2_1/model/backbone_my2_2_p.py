@@ -185,4 +185,40 @@ class MyNet2_2_p(nn.Module):
             res = self.dbs_pred[-1 - i](res)
             res = self.out_reduce[-1-i](res)
         # res = self.sigmoid(self.projout(res))
-        return self.projout(res)
+        return x+self.projout(res)
+
+
+    def getFeatureMaps(self, x):
+        features = {}
+        with torch.no_grad():
+            skip = []
+            gauss, laplacian = GTB(x, layer=self.num_block)
+            res = self.proj_in(x)
+            features['proj_in'] = res
+
+            for i in range(0, self.num_block):
+                res = self.ebs[i](res)
+                features[f'ebs_{i}'] = res
+                skip1 = self.ebs_flare[i](res + self.proj_laplacian[i](laplacian[i]))
+                features[f'ebs_flare_{i}'] = skip1
+                skip.append(skip1)
+                res = self.downs[i](skip1)
+                features[f'downs_{i}'] = res
+
+            for i in range(self.num_bottleneck):
+                res = self.bottleneck[i](res)
+                features[f'bottleneck_{i}'] = res
+
+            for i in range(0, self.num_block):
+                res = self.ups[-1 - i](res)
+                features[f'ups_{-1 - i}'] = res
+                res = torch.cat((res, skip[-1 - i]), dim=1)
+                features[f'concat_{-1 - i}'] = res
+                res = self.dbs_pred[-1 - i](res)
+                features[f'dbs_pred_{-1 - i}'] = res
+                res = self.out_reduce[-1 - i](res)
+                features[f'out_reduce_{-1 - i}'] = res
+
+            features['projout'] = self.projout(res)
+        return features
+
