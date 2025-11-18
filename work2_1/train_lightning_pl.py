@@ -290,6 +290,8 @@ if __name__ == '__main__':
                                                                           scheduler.get_lr()[0]))
                 combined_gt_loss1.print_cumulative_loss('gt')
                 combined_gt_loss1.clear_cumulative_loss()
+                combined_light_loss1.print_cumulative_loss('light')
+                combined_light_loss1.clear_cumulative_loss()
 
                 print("------------------------------------------------------------------")
                 # Save the last model
