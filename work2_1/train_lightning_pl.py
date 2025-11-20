@@ -89,11 +89,17 @@ def get_data_loaders(config, fabric):
     return train_loader, real_val_loader, syn_val_loader
 
 
-def load_model(config, fabric):
+def load_model(config, fabric,lr_mul=1,seed_ran=False):
     Train = config['TRAINING']
     OPT = config['TRAINOPTIM']
 
     print('==> Build the model')
+    if(seed_ran):
+        my_seed = random.randint(1, 10000)
+        random.seed(my_seed)
+        np.random.seed(my_seed)
+        torch.manual_seed(my_seed)
+        torch.cuda.manual_seed_all(my_seed)
     ## Training model path direction
     mode = config['MODEL']['MODE']
     model_dir = os.path.join(Train['SAVE_DIR'], mode, 'models')
@@ -106,7 +112,7 @@ def load_model(config, fabric):
     p_number = network_parameters(model_restored)
     ## Optimizer
     start_epoch = 1
-    new_lr = float(OPT['LR_INITIAL'])
+    new_lr = float(OPT['LR_INITIAL'])*lr_mul
     optimizer = optim.Adam(model_restored.parameters(), lr=new_lr, betas=(0.9, 0.999), eps=1e-8)
     model_restored, optimizer = fabric.setup(model_restored, optimizer)
     ## Scheduler (Strategy)
@@ -224,71 +230,87 @@ if __name__ == '__main__':
     minio_helper = MinIOHelper(**config['MINIO'])
 
     fabric = init_torch_config(config)
-    model_restored, checkpoint, optimizer, scheduler, start_epoch = load_model(config, fabric)
-
-    if checkpoint is not None:
-        best_real_dict = checkpoint['best_real_dict']
-        best_syn_dict = checkpoint['best_syn_dict']
-        print("load indices from checkpoint succeed.")
-
-    train_loader, real_val_loader, syn_val_loader = get_data_loaders(config, fabric)
     total_start_time = time.time()
+    lr_mul=1
+    seed_ran=False
+    while True:
+        retry = False
+        model_restored, checkpoint, optimizer, scheduler, start_epoch = load_model(config, fabric, lr_mul, seed_ran)
 
-    Train = config['TRAINING']
-    OPT = config['TRAINOPTIM']
-    model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
-    combined_gt_loss1 = CombinedLoss(Train['LOSS']).cuda()
-    combined_light_loss1 = CombinedLoss(Train['LOSSLIGHT']).cuda()
-    loss_fn_alex = lpips.LPIPS(net='alex').cuda()
-    for epoch in range(start_epoch, OPT['EPOCHS'] + 1):
-        if 'LIMITED' in config and config['LIMITED']:
-            assertLimited()
-        epoch_start_time = time.time()
+        if checkpoint is not None:
+            best_real_dict = checkpoint['best_real_dict']
+            best_syn_dict = checkpoint['best_syn_dict']
+            print("load indices from checkpoint succeed.")
 
-        model_restored.train()
-        for i, data in enumerate(tqdm(train_loader), 0):
-            # Forward propagation
-            # for param in model_restored.parameters():
-            #     param.grad = None
-            optimizer.zero_grad()
-            target = fabric.to_device(data[0])
-            input_ = fabric.to_device(data[1])
-            # flare = fabric.to_device(data[2])
-            light = fabric.to_device(data[3])
-            restored, predlight, alpha, params = model_restored(input_)
-            loss1_gt = combined_gt_loss1(restored, target)
-            loss1_light = combined_light_loss1(predlight, light,alpha,params)
+        train_loader, real_val_loader, syn_val_loader = get_data_loaders(config, fabric)
 
-            loss = loss1_gt+loss1_light
-            fabric.backward(loss)
-            optimizer.step()
-            if i % 500 == 499:
-                print(f'epoch {epoch}, iter {i + 1} finished.===================================================')
-        ## Evaluation (Validation)
 
-        if fabric.is_global_zero:
-            model_restored.eval()
-            update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x)[0], real_val_loader, best_real_dict, loss_fn_alex,writer)
-            update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x)[0], syn_val_loader, best_syn_dict, loss_fn_alex,writer)
-            print("------------------------------------------------------------------")
-            print(
-                "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,
-                                                                      scheduler.get_lr()[0]))
-            combined_gt_loss1.print_cumulative_loss('gt')
-            combined_gt_loss1.clear_cumulative_loss()
+        Train = config['TRAINING']
+        OPT = config['TRAINOPTIM']
+        model_dir = os.path.join(Train['SAVE_DIR'], config['MODEL']['MODE'], 'models')
+        combined_gt_loss1 = CombinedLoss(Train['LOSS']).cuda()
+        combined_light_loss1 = CombinedLoss(Train['LOSSLIGHT']).cuda()
+        loss_fn_alex = lpips.LPIPS(net='alex').cuda()
+        for epoch in range(start_epoch, OPT['EPOCHS'] + 1):
+            if 'LIMITED' in config and config['LIMITED']:
+                assertLimited()
+            epoch_start_time = time.time()
 
-            print("------------------------------------------------------------------")
-            # Save the last model
-            torch.save({'epoch': epoch,
-                        'state_dict': model_restored.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'best_real_dict': best_real_dict,
-                        'best_syn_dict': best_syn_dict,
-                        }, os.path.join(model_dir, "model_latest.pth"))
-            threading.Thread(
-                target=lambda: local_sync(minio_helper, model_dir, update_real_list, update_syn_list)).start()
-        scheduler.step()
-    writer.close()
+            model_restored.train()
+            for i, data in enumerate(tqdm(train_loader), 0):
+                # Forward propagation
+                # for param in model_restored.parameters():
+                #     param.grad = None
+                optimizer.zero_grad()
+                target = fabric.to_device(data[0])
+                input_ = fabric.to_device(data[1])
+                # flare = fabric.to_device(data[2])
+                light = fabric.to_device(data[3])
+                restored, predlight, alpha, params = model_restored(input_)
+                loss1_gt = combined_gt_loss1(restored, target)
+                loss1_light = combined_light_loss1(predlight, light,alpha,params)
 
-    total_finish_time = (time.time() - total_start_time)  # seconds
-    print('Total training time: {:.1f} hours'.format((total_finish_time / 60 / 60)))
+                loss = loss1_gt+loss1_light
+                fabric.backward(loss)
+                optimizer.step()
+                if i % 500 == 499:
+                    print(f'epoch {epoch}, iter {i + 1} finished.===================================================')
+            ## Evaluation (Validation)
+
+            if fabric.is_global_zero:
+                model_restored.eval()
+                update_real_list = validate(epoch, config, 'REAL', lambda x:model_restored(x)[0], real_val_loader, best_real_dict, loss_fn_alex,writer)
+                update_syn_list = validate(epoch,config, 'SYN', lambda x:model_restored(x)[0], syn_val_loader, best_syn_dict, loss_fn_alex,writer)
+                if update_syn_list is None or update_real_list is None:
+                    retry=True
+                    break
+                print("------------------------------------------------------------------")
+                print(
+                    "Epoch: {}\tTime: {:.4f}\tLearningRate {:.8f}".format(epoch, time.time() - epoch_start_time,
+                                                                          scheduler.get_lr()[0]))
+                combined_gt_loss1.print_cumulative_loss('gt')
+                combined_gt_loss1.clear_cumulative_loss()
+                combined_light_loss1.print_cumulative_loss('light')
+                combined_light_loss1.clear_cumulative_loss()
+
+                print("------------------------------------------------------------------")
+                # Save the last model
+                torch.save({'epoch': epoch,
+                            'state_dict': model_restored.state_dict(),
+                            'optimizer': optimizer.state_dict(),
+                            'best_real_dict': best_real_dict,
+                            'best_syn_dict': best_syn_dict,
+                            }, os.path.join(model_dir, "model_latest.pth"))
+                threading.Thread(
+                    target=lambda: local_sync(minio_helper, model_dir, update_real_list, update_syn_list)).start()
+            scheduler.step()
+        if retry:
+            print("Nan detected. retry with new need and lr-------------------------------")
+            lr_mul = 0.75
+            seed_ran = True
+            continue
+        writer.close()
+
+        total_finish_time = (time.time() - total_start_time)  # seconds
+        print('Total training time: {:.1f} hours'.format((total_finish_time / 60 / 60)))
+        break
