@@ -138,7 +138,7 @@ def calculate_metrics(type):
     input_folder = f'test_result_{type}'
     gt_list = sorted(glob(gt_folder))
     input_list = sorted(glob(input_folder))
-    mask_folder = os.path.join(opt['TESTING'][f'TEST_DIR_${type.upper()}'], 'mask')
+    mask_folder = os.path.join(opt['TESTING'][f'TEST_DIR_{type.upper()}'], 'mask')
     mask_list = sorted(glob(mask_folder))
 
     assert len(gt_list) == len(input_list)
