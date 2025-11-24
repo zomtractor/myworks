@@ -3,7 +3,7 @@ from einops import rearrange
 
 
 class LayerNorm(nn.Module):
-    def __init__(self, dim, norm_type='bias_free'):
+    def __init__(self, dim, norm_type='with_bias'):
         super().__init__()
         self.norm_type = norm_type
         self.dim = dim
