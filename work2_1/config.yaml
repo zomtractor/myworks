@@ -17,10 +17,15 @@ MODEL:
 #  ARGS:
 ##    in_channels: 3
 #    base_ch: 64
-  MODE: 'net2_2_p2'
-  ARCH: 'MyNet2_2_p'
+  MODE: 'smfr2'
+  ARCH: 'SMFR'
   ARGS:
-    base_channels: 16
+    width: 16
+#  MODE: 'fgrnet'
+#  ARCH: 'FGRNet'
+#  ARGS:
+#    img_ch: 3
+#    out_ch: 6
 # Optimization arguments.
 TRAINOPTIM:
   BATCH: 8 # origin: 2
@@ -35,7 +40,7 @@ TRAINOPTIM:
 #  STRATEGY: "ddp"   #
 
 DATASET:
-  LENGTH: 16384 # origin: 8192
+  LENGTH: 21000 # origin: 8192
   MODE: 'Flare7Kpp'  # 'local','Flare7K','Flare7Kpp'
   LOCAL_DIR: './dataset/flare7k_local' # path to local dataset
   BACKGROUND_DIR: './dataset/Flickr24K' # path to background image
@@ -60,7 +65,7 @@ TRAINING:
 #    ColorConsistencyLoss:
 #      loss_weight: !!float 1e-4
     LPIPSLoss:
-      net: 'vgg'
+      net: 'vgg19'
       loss_weight: 0.5
   LOSSLIGHT:
     ParamAwareLightLoss:

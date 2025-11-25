@@ -6,7 +6,7 @@ import yaml
 from focal_frequency_loss import FocalFrequencyLoss as FFL
 from pytorch_msssim import ms_ssim
 import torch.nn.functional as F
-
+from torchvision.models import vgg19
 
 # ========== L1 Charbonnier Loss ==========
 class L1CharbonnierLoss(nn.Module):
@@ -29,11 +29,12 @@ class FocalFrequencyLoss(FFL):
 
 # ========== SSIM Loss ==========
 class SSIMLoss(nn.Module):
-    def __init__(self):
+    def __init__(self,weights=None):
         super(SSIMLoss, self).__init__()
+        self.weights = weights
 
     def forward(self, x, y, *args):
-        return 1 - ms_ssim(x, y, data_range=1.0, size_average=True)
+        return 1 - ms_ssim(x, y, data_range=1.0, size_average=True,weights=self.weights)
 
 # ========== Color Consistency Loss ==========
 class ColorConsistencyLoss(nn.Module):
@@ -54,16 +55,50 @@ class ColorConsistencyLoss(nn.Module):
 
         return loss
 
+# class LPIPSLoss(nn.Module):
+#     def __init__(self,net='vgg'):
+#         super(LPIPSLoss, self).__init__()
+#         self.vgg = lpips.LPIPS(net=net)  # Perceptual VGG Loss
+#         self.vgg.eval()  # VGG loss 不更新
+#         for param in self.vgg.parameters():
+#             param.requires_grad = False
+#
+#     def forward(self, pred, target, *args):
+#         return self.vgg(pred * 2 - 1, target * 2 - 1).mean()
+
+
 class LPIPSLoss(nn.Module):
-    def __init__(self,net='vgg'):
+    def __init__(self, layers=[2,7,12,21,30],layer_weight=[1/2.6,1/4.8,1/3.7,1/5.6,10/1.5]):
         super(LPIPSLoss, self).__init__()
-        self.vgg = lpips.LPIPS(net=net)  # Perceptual VGG Loss
-        self.vgg.eval()  # VGG loss 不更新
-        for param in self.vgg.parameters():
+        vgg = vgg19(pretrained=True)
+        model = nn.Sequential(*list(vgg.features)[:31])
+        model = model.cuda()
+        model = model.eval()
+        # Freeze VGG19 #
+        for param in model.parameters():
             param.requires_grad = False
 
-    def forward(self, pred, target, *args):
-        return self.vgg(pred * 2 - 1, target * 2 - 1).mean()
+        self.vgg = model
+        self.mae_loss = nn.L1Loss()
+        self.selected_feature_index = layers
+        self.layer_weight = layer_weight
+
+    def extract_feature(self, x):
+        selected_features = []
+        for i, model in enumerate(self.vgg):
+            x = model(x)
+            if i in self.selected_feature_index:
+                selected_features.append(x.clone())
+        return selected_features
+
+    def forward(self, source, target):
+        source_feature = self.extract_feature(source)
+        target_feature = self.extract_feature(target)
+        len_feature = len(source_feature)
+        perceptual_loss = 0
+        for i in range(len_feature):
+            perceptual_loss += self.mae_loss(source_feature[i], target_feature[i]) * self.layer_weight[i]
+        return perceptual_loss
 
 def gaussian_2d(shape, center, sigma):
     """

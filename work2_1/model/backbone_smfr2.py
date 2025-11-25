@@ -261,7 +261,7 @@ class SMEBlock(nn.Module):
 
 
 class SMFR(nn.Module):
-    def __init__(self, img_channel=3, width=16, middle_blk_num=1, enc_blk_nums=[], dec_blk_nums=[]):
+    def __init__(self, img_channel=3, width=16, middle_blk_num=1, enc_blk_nums=[1,2,3], dec_blk_nums=[3,1,1]):
         super().__init__()
 
         self.intro = nn.Conv2d(in_channels=img_channel, out_channels=width, kernel_size=3, padding=1, stride=1,
