@@ -17,10 +17,10 @@ MODEL:
 #  ARGS:
 ##    in_channels: 3
 #    base_ch: 64
-  MODE: 'smfr2'
-  ARCH: 'SMFR'
+  MODE: 'MyNet2_2_pmul'
+  ARCH: 'MyNet2_2_pmul'
   ARGS:
-    width: 16
+    base_channels: 16
 #  MODE: 'fgrnet'
 #  ARCH: 'FGRNet'
 #  ARGS:

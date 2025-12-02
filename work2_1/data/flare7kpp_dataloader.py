@@ -61,7 +61,7 @@ class Flare_Image_Loader(data.Dataset):
         [self.data_list.extend(glob.glob(image_path + '/*.' + e)) for e in self.ext]
         self.random_choices_gt = self.generate_random_indices(length, len(self.data_list))
 
-
+        self.cnt=0
         self.flare_dict = {}
         self.flare_name_list = []
         self.random_choices_flare = {}
@@ -193,6 +193,11 @@ class Flare_Image_Loader(data.Dataset):
             flare_img = flare_img - light_img
             flare_img = torch.clamp(flare_img, min=0, max=1)
 
+        self.cnt+=1
+        if self.cnt>=self.length:
+            self.cnt=0
+            self.shuffle_indices()
+
         if self.mask_type == None:
             return {'gt': adjust_gamma_reverse(base_img), 'flare': adjust_gamma_reverse(flare_img),
                     'lq': adjust_gamma_reverse(merge_img), 'gamma': gamma,'light': adjust_gamma_reverse(light_img)}
@@ -297,7 +302,7 @@ class Flare_Image_Loader(data.Dataset):
             return result
 
     def shuffle_indices(self):
-        random.shuffle(self.random_choices_gt)
+        self.random_choices_gt = self.generate_random_indices(self.length, len(self.data_list))
         for k,v in self.random_choices_flare.items():
             random.shuffle(v)
         for k,v in self.random_choices_reflective.items():

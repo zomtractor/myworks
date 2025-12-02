@@ -23,6 +23,7 @@ from .backbone_my2_5 import MyNet2_5
 from .backbone_smfr import SMFRNet
 from .backbone_fgrnet import FGRNet
 from .backbone_smfr2 import SMFR
+from .backbone_my2_2_pmul import MyNet2_2_pmul
 
 # from .layers import *
 # from .backbone_convir import *

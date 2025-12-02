@@ -133,6 +133,9 @@ class RealtimeDataLoaderTrain(Dataset):
         light = self.resize(light)
         return gt,lq,flare,light
 
+    def shuffle(self):
+        self.loader.shuffle_indices()
+
 class DataLoaderTrain(Dataset):
     def __init__(self, rgb_dir, img_options=None,length=None):
         super(DataLoaderTrain, self).__init__()
